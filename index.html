@@ -327,7 +327,7 @@
           // ---------------- Social Share ----------------
           const handleShare = () => {
             if (!summary) return;
-            const text = `เกมจำลองการลงทุน 10 ปี 📈\nฉันได้ฉายา "${summary.type.name} ${summary.type.emoji}"\nเงินลงทุน ${fmtShort(summary.invested)} โตเป็น ${fmtShort(summary.finalW)}\nผลตอบแทนเฉลี่ย ${pctf(summary.cagr)} ต่อปี!\n\nมาทดสอบทักษะการลงทุนของคุณได้ที่นี่เลย!`;
+            const text = `เกมจำลองการลงทุน 10 ปี 📈\nฉันได้ฉายา "${summary.type.name} ${summary.type.emoji}"\nเงินลงทุน ${fmtShort(summary.invested)} โตเป็น ${fmtShort(summary.finalW)}\nผลตอบแทนเฉลี่ย ${pctf(summary.cagr)} ต่อปี!\n\nมาทดสอบทักษะการลงทุนของคุณได้ที่นี่เลย! 👉🏻 https://reddogboy.github.io/10yrs-investment-game/ `;
             navigator.clipboard.writeText(text).then(() => {
                 alert("คัดลอกผลลัพธ์แล้ว! นำไปวางแชร์ให้เพื่อนๆ ในโซเชียลได้เลยครับ 🎉");
             }).catch(err => {

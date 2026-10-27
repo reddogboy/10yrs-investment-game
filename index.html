@@ -5,214 +5,116 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>เกมจำลองการลงทุน 10 ปี</title>
 
-    <!-- โหลด Tailwind CSS -->
+    <!-- 1. โหลด Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- โหลด React และ ReactDOM -->
+    <!-- 2. โหลด React & ReactDOM -->
     <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
 
-    <!-- โหลด Babel สำหรับคอมไพล์ JSX ในหน้าเว็บ -->
-    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+    <!-- 3. โหลดไลบรารีสำหรับวาดกราฟ (Recharts) -->
+    <script src="https://unpkg.com/prop-types/prop-types.min.js"></script>
+    <script src="https://unpkg.com/recharts/umd/Recharts.js"></script>
 
-    <!-- โหลด Recharts สำหรับแสดงกราฟ -->
-    <script src="https://unpkg.com/prop-types@15.6.2/prop-types.min.js"></script>
-    <script src="https://unpkg.com/recharts/umd/Recharts.js" crossorigin></script>
+    <!-- 4. โหลด Babel สำหรับแปลงโค้ด JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
     <style>
         body { 
-            background-color: #F8FAFC; 
-            color: #1E293B;
-            font-family: 'Prompt', 'Noto Sans Thai', 'Segoe UI', sans-serif;
-            -webkit-tap-highlight-color: transparent; 
+            background-color: #F6F9F8; 
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            -webkit-tap-highlight-color: transparent;
         }
-        
-        /* Animations */
-        .fade-in-up { animation: fadeInUp 0.4s ease-out forwards; }
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(15px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Buttons */
-        .btn-primary {
-            width: 100%;
-            padding: 16px 0;
-            border-radius: 20px;
-            border: none;
-            background: linear-gradient(135deg, #6366F1, #4F46E5);
-            color: white;
-            font-size: 16px;
-            font-weight: 800;
-            cursor: pointer;
-            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
-            transition: all 0.2s ease;
-        }
-        .btn-primary:active { transform: scale(0.98); }
-        .btn-primary.disabled {
-            background: #E2E8F0;
-            color: #64748B;
-            box-shadow: none;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        /* Custom Sliders */
-        .custom-slider {
-            -webkit-appearance: none;
-            width: 100%;
-            height: 12px;
-            border-radius: 6px;
-            background: #F8FAFC;
-            outline: none;
-            margin: 10px 0;
-        }
-        .custom-slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            background: var(--slider-color, #6366F1);
-            cursor: pointer;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-            border: 3px solid #fff;
-            transition: transform 0.1s;
-        }
-        .custom-slider::-webkit-slider-thumb:active { transform: scale(1.15); }
-        .custom-slider::-moz-range-thumb {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            background: var(--slider-color, #6366F1);
-            cursor: pointer;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-            border: 3px solid #fff;
-        }
-
-        /* Toggle Switch */
-        .toggle-slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background-color: #E2E8F0;
-            transition: .3s;
-            border-radius: 24px;
-        }
-        .toggle-slider:before {
-            position: absolute;
-            content: "";
-            height: 18px; width: 18px;
-            left: 3px; bottom: 3px;
-            background-color: white;
-            transition: .3s;
-            border-radius: 50%;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-        }
-        .toggle-slider.on { background-color: #6366F1; }
-        .toggle-slider.on:before { transform: translateX(20px); }
-
-        /* Stat Cards */
-        .stat-card {
-            background: #FFFFFF;
-            border: 1px solid #E2E8F0;
-            border-radius: 16px;
-            padding: 16px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.02);
-        }
-        .stat-card .label {
-            font-size: 11px;
-            font-weight: 700;
-            color: #64748B;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 4px;
-        }
-        .stat-card .value { font-size: 18px; font-weight: 800; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
+    <!-- จุดที่ React จะนำแอปมาแสดงผล -->
     <div id="root"></div>
 
     <script type="text/babel">
-        // ดึงเครื่องมือมาจากไลบรารีที่โหลดใน head
-        const { useState, useMemo } = React;
+        // --- เปลี่ยนจากการใช้ import มาเป็นการดึงจาก Global Variable ---
+        const { useState, useMemo, useEffect } = React;
         const { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer, Legend } = Recharts;
 
-        // ---------------- โทนสีใหม่ (Modern Clean Theme) ----------------
+        // ---------------- ชุดสี (Palette) ----------------
         const C = {
-            bg: "#F8FAFC", card: "#FFFFFF", text: "#1E293B", textMuted: "#64748B",
-            border: "#E2E8F0", primary: "#6366F1", primaryHover: "#4F46E5", primarySoft: "#E0E7FF",
-            green: "#10B981", greenSoft: "#D1FAE5", red: "#EF4444", redSoft: "#FEE2E2",
-            gold: "#F59E0B", goldSoft: "#FEF3C7",
+          bg: "#F6F9F8", card: "#FFFFFF", ink: "#12292B", muted: "#5E7476",
+          line: "#E2EAE9", teal: "#0E5A5F", tealSoft: "#DDEBEA",
+          gold: "#C9A02C", goldSoft: "#F5EDD6", red: "#B3452F", redSoft: "#F7E3DE",
+          green: "#2E7D5B", greenSoft: "#DFEEE7", rust: "#B3572F", blue: "#3E6B8F",
         };
 
+        // ---------------- ข้อมูลสินทรัพย์ ----------------
         const ASSETS = [
-            { key: "cash", name: "💵 ตลาดเงิน", color: "#64748B", desc: "1.5% นิ่งๆ หลับสบาย" },
-            { key: "bond", name: "📄 ตราสารหนี้", color: "#0EA5E9", desc: "2.5% สวิงเบาๆ" },
-            { key: "equity", name: "📈 หุ้นโลก", color: "#8B5CF6", desc: "8% โอกาสโตสูง/ร่วงหนัก" },
-            { key: "gold", name: "🥇 ทองคำ", color: "#F59E0B", desc: "3% กระจายความเสี่ยง" },
+          { key: "cash", name: "กองทุนตลาดเงิน", color: "#5E7476", desc: "ผลตอบแทน ~1.5%, ไม่เคยติดลบ" },
+          { key: "bond", name: "กองทุนตราสารหนี้", color: "#3E6B8F", desc: "ผลตอบแทน ~2.5%, ผันผวนต่ำ" },
+          { key: "equity", name: "กองทุนหุ้นโลก", color: "#0E5A5F", desc: "ผลตอบแทนเฉลี่ย ~8%, อาจร่วงหนักถึง −40%" },
+          { key: "gold", name: "กองทุนทองคำ", color: "#C9A02C", desc: "ผลตอบแทน ~3%, ใช้กระจายความเสี่ยงจากหุ้น" },
         ];
 
-        const fmt = (n) => "฿" + Math.round(n).toLocaleString("en-US");
+        // ---------------- ฟังก์ชันช่วยจัดรูปแบบตัวเลข ----------------
+        const fmt = (n) => "฿" + Math.round(n).toLocaleString("th-TH");
         const fmtShort = (n) => {
-            const a = Math.abs(n), s = n < 0 ? "-" : "";
-            if (a >= 1e6) return s + "฿" + (a / 1e6).toFixed(2) + "M";
-            if (a >= 1e3) return s + "฿" + (a / 1e3).toFixed(0) + "K";
-            return s + "฿" + Math.round(a);
+          const a = Math.abs(n), s = n < 0 ? "-" : "";
+          if (a >= 1e6) return s + "฿" + (a / 1e6).toFixed(2) + "M";
+          if (a >= 1e3) return s + "฿" + (a / 1e3).toFixed(0) + "K";
+          return s + "฿" + Math.round(a).toLocaleString("th-TH");
         };
         const pctf = (x) => (x >= 0 ? "+" : "") + (x * 100).toFixed(1) + "%";
 
-        // ---------------- เหตุการณ์จำลอง (Cards) ----------------
+        // ---------------- การ์ดเหตุการณ์จำลอง ----------------
         const CARDS = [
-            { id: "bull", emoji: "🐂", name: "ตลาดกระทิงดุ", desc: "ตลาดพุ่งทะยาน สินทรัพย์เสี่ยงราคาพุ่ง", w: 18, r: { cash: 1.5, bond: 2.5, equity: 27, gold: -4 } },
-            { id: "steady", emoji: "🌱", name: "เติบโตสม่ำเสมอ", desc: "เศรษฐกิจดี เติบโตตามปกติ", w: 27, r: { cash: 1.5, bond: 4, equity: 14, gold: 3 } },
-            { id: "recovery", emoji: "🚀", name: "เศรษฐกิจฟื้นตัว", desc: "ความมั่นใจกลับมาหลังผ่านพ้นช่วงยากลำบาก", w: 12, r: { cash: 1.2, bond: 3, equity: 24, gold: -3 } },
-            { id: "boring", emoji: "☕", name: "ปีที่น่าเบื่อ", desc: "ไม่มีอะไรเกิดขึ้นมาก ตลาดทรงตัว", w: 13, r: { cash: 1.5, bond: 3.5, equity: 6, gold: 2 } },
-            { id: "inflation", emoji: "🔥", name: "เงินเฟ้อพุ่ง", desc: "ข้าวของแพงขึ้น เงินสดด้อยค่า ทองคำโดดเด่น", w: 9, r: { cash: 0.8, bond: -2, equity: -4, gold: 15 } },
-            { id: "ratehike", emoji: "🏦", name: "ขึ้นดอกเบี้ย", desc: "ธนาคารกลางเข้มงวด หุ้นและพันธบัตรสั่นคลอน", w: 8, r: { cash: 3, bond: -4, equity: -8, gold: -2 } },
-            { id: "crisis", emoji: "😨", name: "วิกฤตความกลัว", desc: "ปัญหาภูมิรัฐศาสตร์ นักลงทุนหนีไปหาสินทรัพย์ปลอดภัย", w: 7, r: { cash: 1.5, bond: 6, equity: -17, gold: 12 } },
-            { id: "crash", emoji: "💥", name: "ตลาดพังทลาย", desc: "เทขายตื่นตระหนก หุ้นร่วงหนัก ทองคำคือที่หลบภัย", w: 6, r: { cash: 1.5, bond: 5, equity: -37, gold: 18 } },
+          { id: "bull", emoji: "🐂", name: "ตลาดกระทิงดุ", desc: "ตลาดพุ่งทะยาน — สินทรัพย์เสี่ยงราคาพุ่ง", w: 18, r: { cash: 1.5, bond: 2.5, equity: 27, gold: -4 } },
+          { id: "steady", emoji: "📈", name: "เติบโตสม่ำเสมอ", desc: "เศรษฐกิจดี — เติบโตตามปกติ", w: 27, r: { cash: 1.5, bond: 4, equity: 14, gold: 3 } },
+          { id: "recovery", emoji: "🌱", name: "เศรษฐกิจฟื้นตัว", desc: "ความมั่นใจกลับมาหลังผ่านพ้นช่วงยากลำบาก", w: 12, r: { cash: 1.2, bond: 3, equity: 24, gold: -3 } },
+          { id: "boring", emoji: "😴", name: "ปีที่ซบเซา", desc: "ไม่มีอะไรเกิดขึ้นมาก — ตลาดทรงตัว", w: 13, r: { cash: 1.5, bond: 3.5, equity: 6, gold: 2 } },
+          { id: "inflation", emoji: "🔥", name: "เงินเฟ้อพุ่ง", desc: "ข้าวของแพงขึ้น — เงินสดด้อยค่า ทองคำโดดเด่น", w: 9, r: { cash: 0.8, bond: -2, equity: -4, gold: 15 } },
+          { id: "ratehike", emoji: "🏦", name: "ขึ้นดอกเบี้ย", desc: "ธนาคารกลางเข้มงวด — หุ้นและพันธบัตรสั่นคลอน", w: 8, r: { cash: 3, bond: -4, equity: -8, gold: -2 } },
+          { id: "crisis", emoji: "🌏", name: "วิกฤตความกลัว", desc: "ปัญหาภูมิรัฐศาสตร์ — นักลงทุนหนีไปหาสินทรัพย์ปลอดภัย", w: 7, r: { cash: 1.5, bond: 6, equity: -17, gold: 12 } },
+          { id: "crash", emoji: "💥", name: "ตลาดพังทลาย", desc: "เทขายตื่นตระหนก — หุ้นร่วงหนัก ทองคำคือที่หลบภัย", w: 6, r: { cash: 1.5, bond: 5, equity: -37, gold: 18 } },
         ];
-        const BEAR_CARD = { id: "bear", emoji: "🐻", name: "ตลาดหมีต่อเนื่อง", desc: "ควันหลงจากตลาดพังทลาย แรงเทขายยังมีต่อเนื่อง", w: 0, r: { cash: 1.5, bond: 3, equity: -15, gold: 8 } };
+        const BEAR_CARD = { id: "bear", emoji: "🐻", name: "ตลาดหมีต่อเนื่อง", desc: "ควันหลงจากตลาดพังทลาย — แรงเทขายยังมีต่อเนื่อง", w: 0, r: { cash: 1.5, bond: 3, equity: -15, gold: 8 } };
 
         const rnd = (a, b) => a + Math.random() * (b - a);
         const clamp = (x, lo, hi) => Math.max(lo, Math.min(hi, x));
 
         function drawCard(excludeCrash = false) {
-            const pool = excludeCrash ? CARDS.filter((c) => c.id !== "crash") : CARDS;
-            const total = pool.reduce((s, c) => s + c.w, 0);
-            let x = Math.random() * total;
-            for (const c of pool) { x -= c.w; if (x <= 0) return c; }
-            return pool[pool.length - 1];
+          const pool = excludeCrash ? CARDS.filter((c) => c.id !== "crash") : CARDS;
+          const total = pool.reduce((s, c) => s + c.w, 0);
+          let x = Math.random() * total;
+          for (const c of pool) { x -= c.w; if (x <= 0) return c; }
+          return pool[pool.length - 1];
         }
 
+        // จำลองการสุ่ม 10 ปี
         function generateDeck() {
-            let cards = Array.from({ length: 10 }, () => drawCard());
-            let crashIdx = cards.map((c, i) => (c.id === "crash" ? i : -1)).filter((i) => i >= 0);
-            while (crashIdx.length > 2) {
-                const kill = crashIdx[Math.floor(Math.random() * crashIdx.length)];
-                cards[kill] = drawCard(true);
-                crashIdx = cards.map((c, i) => (c.id === "crash" ? i : -1)).filter((i) => i >= 0);
+          let cards = Array.from({ length: 10 }, () => drawCard());
+          let crashIdx = cards.map((c, i) => (c.id === "crash" ? i : -1)).filter((i) => i >= 0);
+          while (crashIdx.length > 2) {
+            const kill = crashIdx[Math.floor(Math.random() * crashIdx.length)];
+            cards[kill] = drawCard(true);
+            crashIdx = cards.map((c, i) => (c.id === "crash" ? i : -1)).filter((i) => i >= 0);
+          }
+          if (crashIdx.length === 0) {
+            cards[Math.floor(Math.random() * 10)] = CARDS.find((c) => c.id === "crash");
+          }
+          for (let i = 0; i < cards.length - 1; i++) {
+            if (cards[i].id === "crash" && cards[i + 1].id !== "crash" && Math.random() < 0.5) {
+              cards[i + 1] = BEAR_CARD;
             }
-            if (crashIdx.length === 0) {
-                cards[Math.floor(Math.random() * 10)] = CARDS.find((c) => c.id === "crash");
-            }
-            for (let i = 0; i < cards.length - 1; i++) {
-                if (cards[i].id === "crash" && cards[i + 1].id !== "crash" && Math.random() < 0.5) {
-                    cards[i + 1] = BEAR_CARD;
-                }
-            }
-            return cards.map((card) => {
-                const eqN = rnd(-5, 5);
-                const r = {
-                    cash: Math.max(0.3, card.r.cash + rnd(-0.4, 0.4)) / 100,
-                    bond: (card.r.bond + rnd(-2, 2)) / 100,
-                    equity: clamp(card.r.equity + eqN, -40, 32) / 100,
-                    gold: (card.r.gold - 0.6 * eqN + rnd(-3, 3)) / 100,
-                };
-                return { card, r };
-            });
+          }
+          return cards.map((card) => {
+            const eqN = rnd(-5, 5);
+            const r = {
+              cash: Math.max(0.3, card.r.cash + rnd(-0.4, 0.4)) / 100,
+              bond: (card.r.bond + rnd(-2, 2)) / 100,
+              equity: clamp(card.r.equity + eqN, -40, 32) / 100,
+              gold: (card.r.gold - 0.6 * eqN + rnd(-3, 3)) / 100,
+            };
+            return { card, r };
+          });
         }
 
         // ---------------- ค่าคงที่ของเกม ----------------
@@ -223,540 +125,507 @@
         const paceAt = (t) => START * Math.pow(1 + TARGET, t) + DCA * ((Math.pow(1 + TARGET, t) - 1) / TARGET) * (1 + TARGET);
 
         function runBenchmark(deck, weights) {
-            let hold = {};
-            ASSETS.forEach((a) => { hold[a.key] = 0; });
-            let w = START;
-            const path = [];
-            for (let t = 0; t < TURNS; t++) {
-                const total = Object.values(hold).reduce((s, v) => s + v, 0) + (t === 0 ? START + DCA : DCA);
-                ASSETS.forEach((a) => { hold[a.key] = total * weights[a.key]; });
-                ASSETS.forEach((a) => { hold[a.key] *= 1 + deck[t].r[a.key]; });
-                w = Object.values(hold).reduce((s, v) => s + v, 0);
-                path.push(w);
-            }
-            return path;
+          let hold = {};
+          ASSETS.forEach((a) => { hold[a.key] = 0; });
+          let w = START;
+          const path = [];
+          for (let t = 0; t < TURNS; t++) {
+            const total = Object.values(hold).reduce((s, v) => s + v, 0) + (t === 0 ? START + DCA : DCA);
+            ASSETS.forEach((a) => { hold[a.key] = total * weights[a.key]; });
+            ASSETS.forEach((a) => { hold[a.key] *= 1 + deck[t].r[a.key]; });
+            w = Object.values(hold).reduce((s, v) => s + v, 0);
+            path.push(w);
+          }
+          return path;
         }
 
         function investorType(avgW, worstRet) {
-            if (avgW.equity >= 0.65) return { emoji: "🏄‍♂️", name: "นักโต้คลื่นหุ้นดุ", desc: "ทุ่มสุดตัวกับหุ้น สวิงแรง ใจกล้า" };
-            if (avgW.cash + avgW.bond >= 0.65) return { emoji: "🐢", name: "เต่าน้อยสายเซฟ", desc: "ช้าแต่ชัวร์ หลับสบาย แต่อาจแพ้เงินเฟ้อ" };
-            if (avgW.gold >= 0.35) return { emoji: "🛡️", name: "สายเกราะทองคำ", desc: "เน้นทองป้องกันความเสี่ยง ไม่หวั่นตลาดพัง" };
-            if (worstRet > -0.10) return { emoji: "⛵", name: "กัปตันสุดนิ่ง", desc: "บาลานซ์เยี่ยม ผ่านพ้นทุกพายุมาได้ชิลๆ" };
-            return { emoji: "⚖️", name: "นักวางแผนสมดุล", desc: "กระจายความเสี่ยงได้ดี นักลงทุนระยะยาวที่แท้ทรู" };
+          if (avgW.equity >= 0.65) return { emoji: "🎲", name: "นักบิดกระทิงเปลี่ยว", desc: "เน้นลงทุนหุ้นเป็นหลัก สวิงแรง ต้องใจแข็ง" };
+          if (avgW.cash + avgW.bond >= 0.65) return { emoji: "🐢", name: "เต่าปลอดภัย", desc: "ช้าแต่ชัวร์ หลับสบาย แต่อาจแพ้เงินเฟ้อ" };
+          if (avgW.gold >= 0.35) return { emoji: "🐉", name: "มังกรทองคำ", desc: "สะสมทองคำป้องกันความเสี่ยง ไม่กลัวตลาดพัง" };
+          if (worstRet > -0.10) return { emoji: "🚢", name: "กัปตันสุดนิ่ง", desc: "รักษาสมดุลได้ดีเยี่ยม ผ่านพ้นได้ทุกมรสุม" };
+          return { emoji: "⚖️", name: "นักกลยุทธ์สมดุล", desc: "กระจายความเสี่ยงยอดเยี่ยม นักลงทุนระยะยาวตัวจริง" };
         }
 
-        // ---------------- UI Components แบบทันสมัย ----------------
+        // ---------------- UI Components ----------------
         function AllocSlider({ asset, value, onChange }) {
-            return (
-                <div style={{ marginBottom: 16 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 8 }}>
-                        <span style={{ fontSize: 14, fontWeight: 700, color: C.text }}>
-                            {asset.name} <span style={{ fontWeight: 400, fontSize: 12, color: C.textMuted }}>· {asset.desc}</span>
-                        </span>
-                        <span style={{ fontSize: 16, fontWeight: 800, color: asset.color, fontVariantNumeric: "tabular-nums" }}>{value}%</span>
-                    </div>
-                    <input type="range" className="custom-slider" min={0} max={100} step={5} value={value}
-                        onChange={(e) => onChange(parseInt(e.target.value))}
-                        style={{ '--slider-color': asset.color }} />
-                </div>
-            );
+          return (
+            <div style={{ marginBottom: 8 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+                <span style={{ fontSize: 12.5, fontWeight: 700, color: asset.color }}>
+                  {asset.name} <span style={{ fontWeight: 400, fontSize: 10.5, color: C.muted }}>· {asset.desc}</span>
+                </span>
+                <span style={{ fontSize: 13, fontWeight: 700, color: asset.color, fontVariantNumeric: "tabular-nums" }}>{value}%</span>
+              </div>
+              <input type="range" min={0} max={100} step={5} value={value}
+                onChange={(e) => onChange(parseInt(e.target.value))}
+                style={{ width: "100%", accentColor: asset.color, cursor: "pointer" }} />
+            </div>
+          );
         }
 
         function MixBar({ weights }) {
-            return (
-                <div style={{ display: "flex", height: 16, borderRadius: 8, overflow: "hidden", background: C.border, marginTop: 12 }}>
-                    {ASSETS.map((a) => weights[a.key] > 0 && (
-                        <div key={a.key} style={{ 
-                            width: `${weights[a.key]}%`, 
-                            background: a.color,
-                            transition: "width 0.3s ease-in-out" 
-                        }} title={`${a.name} ${weights[a.key]}%`} />
-                    ))}
-                </div>
-            );
+          return (
+            <div style={{ display: "flex", height: 14, borderRadius: 7, overflow: "hidden", border: `1px solid ${C.line}` }}>
+              {ASSETS.map((a) => weights[a.key] > 0 && (
+                <div key={a.key} style={{ width: `${weights[a.key]}%`, background: a.color }} title={`${a.name} ${weights[a.key]}%`} />
+              ))}
+            </div>
+          );
         }
 
         function TurnDots({ turn }) {
-            return (
-                <div style={{ display: "flex", gap: 6, justifyContent: "center", margin: "16px 0", flexWrap: "wrap" }}>
-                    {Array.from({ length: TURNS }, (_, i) => (
-                        <div key={i} style={{
-                            display: "flex", alignItems: "center", justifyContent: "center",
-                            width: 24, height: 24, borderRadius: 12, fontSize: 11, fontWeight: 700,
-                            background: i < turn ? C.primary : i === turn ? C.gold : C.border,
-                            color: i <= turn ? "#fff" : C.textMuted,
-                            boxShadow: i === turn ? `0 0 0 3px ${C.goldSoft}` : "none",
-                            transition: "all 0.3s"
-                        }}>
-                            {i + 1}
-                        </div>
-                    ))}
-                </div>
-            );
+          return (
+            <div style={{ display: "flex", gap: 5, justifyContent: "center", margin: "4px 0" }}>
+              {Array.from({ length: TURNS }, (_, i) => (
+                <div key={i} style={{
+                  width: 9, height: 9, borderRadius: 5,
+                  background: i < turn ? C.teal : i === turn ? C.gold : C.line,
+                }} />
+              ))}
+            </div>
+          );
         }
 
-        // ---------------- เมนคอมโพเนนต์ ----------------
+        // ---------------- Main Component ----------------
         function App() {
-            const [deck, setDeck] = useState(generateDeck);
-            const [turn, setTurn] = useState(0); 
-            const [phase, setPhase] = useState("start"); 
-            const [holdings, setHoldings] = useState({ cash: START, bond: 0, equity: 0, gold: 0 });
-            const [sliders, setSliders] = useState({ cash: 25, bond: 25, equity: 25, gold: 25 });
-            const [dcaFollow, setDcaFollow] = useState(true);
-            const [dcaSliders, setDcaSliders] = useState({ cash: 25, bond: 25, equity: 25, gold: 25 });
-            const [history, setHistory] = useState([]);
-            const [targets, setTargets] = useState([]);
+          const [deck, setDeck] = useState(generateDeck);
+          const [turn, setTurn] = useState(0); 
+          const [phase, setPhase] = useState("start"); 
+          const [holdings, setHoldings] = useState({ cash: START, bond: 0, equity: 0, gold: 0 });
+          const [sliders, setSliders] = useState({ cash: 25, bond: 25, equity: 25, gold: 25 });
+          const [dcaFollow, setDcaFollow] = useState(true);
+          const [dcaSliders, setDcaSliders] = useState({ cash: 25, bond: 25, equity: 25, gold: 25 });
+          const [history, setHistory] = useState([]);
+          const [targets, setTargets] = useState([]);
+          
+          const wealth = Object.values(holdings).reduce((s, v) => s + v, 0);
+          const sum = ASSETS.reduce((s, a) => s + sliders[a.key], 0);
+          const dcaSum = ASSETS.reduce((s, a) => s + dcaSliders[a.key], 0);
+          const ready = sum === 100 && (dcaFollow || dcaSum === 100);
+
+          const normalizeDca = () => {
+            if (dcaSum === 0) { setDcaSliders({ cash: 25, bond: 25, equity: 25, gold: 25 }); return; }
+            const n = {}; let acc = 0;
+            ASSETS.forEach((a, i) => {
+              if (i < 3) { n[a.key] = Math.round((dcaSliders[a.key] / dcaSum) * 100 / 5) * 5; acc += n[a.key]; }
+            });
+            n.gold = 100 - acc;
+            setDcaSliders(n);
+          };
+
+          const normalize = () => {
+            if (sum === 0) { setSliders({ cash: 25, bond: 25, equity: 25, gold: 25 }); return; }
+            const n = {};
+            let acc = 0;
+            ASSETS.forEach((a, i) => {
+              if (i < 3) { n[a.key] = Math.round((sliders[a.key] / sum) * 100 / 5) * 5; acc += n[a.key]; }
+            });
+            n.gold = 100 - acc;
+            setSliders(n);
+          };
+
+          const lockAndReveal = () => {
+            if (!ready) return;
+            const w = { cash: sliders.cash / 100, bond: sliders.bond / 100, equity: sliders.equity / 100, gold: sliders.gold / 100 };
+            const dw = dcaFollow ? w : { cash: dcaSliders.cash / 100, bond: dcaSliders.bond / 100, equity: dcaSliders.equity / 100, gold: dcaSliders.gold / 100 };
+            const total = wealth + DCA;
+            const newHold = {};
+            ASSETS.forEach((a) => { newHold[a.key] = wealth * w[a.key] + DCA * dw[a.key]; });
+            const { card, r } = deck[turn];
+            ASSETS.forEach((a) => { newHold[a.key] *= 1 + r[a.key]; });
+            const endW = Object.values(newHold).reduce((s, v) => s + v, 0);
+            setHoldings(newHold);
+            setTargets([...targets, w]);
+            setHistory([...history, { turn: turn + 1, card, r, startW: total, endW, ret: endW / total - 1 }]);
+            setPhase("result");
+          };
+
+          const nextTurn = () => {
+            if (turn + 1 >= TURNS) { setPhase("summary"); return; }
+            const w = wealth;
+            const drift = {};
+            let acc = 0;
+            ASSETS.forEach((a, i) => {
+              if (i < 3) { drift[a.key] = Math.round((holdings[a.key] / w) * 100 / 5) * 5; acc += drift[a.key]; }
+            });
+            drift.gold = Math.max(0, 100 - acc);
+            setSliders(drift);
+            setDcaFollow(true);
+            setDcaSliders(drift);
+            setTurn(turn + 1);
+            setPhase("allocate");
+          };
+
+          const playAgain = () => {
+            setDeck(generateDeck());
+            setTurn(0); setPhase("start");
+            setHoldings({ cash: START, bond: 0, equity: 0, gold: 0 });
+            setSliders({ cash: 25, bond: 25, equity: 25, gold: 25 });
+            setDcaFollow(true);
+            setDcaSliders({ cash: 25, bond: 25, equity: 25, gold: 25 });
+            setHistory([]); setTargets([]);
+          };
+
+          const summary = useMemo(() => {
+            if (phase !== "summary" || history.length < TURNS) return null;
+            const finalW = history[TURNS - 1].endW;
+            const invested = START + DCA * TURNS;
+            const twr = history.reduce((p, h) => p * (1 + h.ret), 1);
+            const cagr = Math.pow(twr, 1 / TURNS) - 1;
+            const worst = history.reduce((m, h) => (h.ret < m.ret ? h : m), history[0]);
+            const best = history.reduce((m, h) => (h.ret > m.ret ? h : m), history[0]);
+            const avgW = { cash: 0, bond: 0, equity: 0, gold: 0 };
+            targets.forEach((t) => ASSETS.forEach((a) => { avgW[a.key] += t[a.key] / targets.length; }));
+            const type = investorType(avgW, worst.ret);
+            const badges = [];
+            if (finalW >= TARGET_W) badges.push({ emoji: "🏆", name: "ผู้พิชิตเป้า 4%", desc: "เติบโตถึงเป้าหมายสำหรับเตรียมเกษียณ" });
+            if (finalW >= INFL_W) badges.push({ emoji: "📈", name: "ผู้ชนะเงินเฟ้อ", desc: "มูลค่าเงินเติบโตเอาชนะข้าวของที่แพงขึ้น" });
+            if (worst.ret >= -0.10) badges.push({ emoji: "🛡️", name: "กลยุทธ์มั่นคง", desc: "ไม่เคยขาดทุนเกิน 10% ในปีเดียว" });
             
-            const wealth = Object.values(holdings).reduce((s, v) => s + v, 0);
-            const sum = ASSETS.reduce((s, a) => s + sliders[a.key], 0);
-            const dcaSum = ASSETS.reduce((s, a) => s + dcaSliders[a.key], 0);
-            const ready = sum === 100 && (dcaFollow || dcaSum === 100);
+            const panicked = history.some((h, i) =>
+              (h.card.id === "crash" || h.card.id === "bear") && i + 1 < targets.length &&
+              targets[i + 1].equity < targets[i].equity - 0.001);
+            
+            if (!panicked) badges.push({ emoji: "🧘", name: "ใจสู้ไม่ถอย", desc: "ไม่แพนิคเทขายหุ้นทิ้งหลังเจอวิกฤตตลาด" });
+            
+            const level = finalW >= TARGET_W ? "win" : finalW >= INFL_W ? "mid" : "lose";
+            const eq100 = runBenchmark(deck, { cash: 0, bond: 0, equity: 1, gold: 0 });
+            const cash100 = runBenchmark(deck, { cash: 1, bond: 0, equity: 0, gold: 0 });
+            const initMix = runBenchmark(deck, targets[0]);
+            
+            const chart = history.map((h, i) => ({
+              year: i + 1, "พอร์ตของคุณ": h.endW, "หุ้น 100%": eq100[i], "เงินสด 100%": cash100[i], "ถือตามสัดส่วนปีแรก": initMix[i],
+            }));
+            
+            return { finalW, invested, cagr, worst, best, type, badges, level, chart };
+          }, [phase, history, targets, deck]);
 
-            const normalizeDca = () => {
-                if (dcaSum === 0) { setDcaSliders({ cash: 25, bond: 25, equity: 25, gold: 25 }); return; }
-                const n = {}; let acc = 0;
-                ASSETS.forEach((a, i) => {
-                    if (i < 3) { n[a.key] = Math.round((dcaSliders[a.key] / dcaSum) * 100 / 5) * 5; acc += n[a.key]; }
-                });
-                n.gold = 100 - acc;
-                setDcaSliders(n);
-            };
+          const wealthChart = history.map((h) => ({ year: h.turn, wealth: h.endW, pace: paceAt(h.turn) }));
+          const cur = history[history.length - 1];
 
-            const normalize = () => {
-                if (sum === 0) { setSliders({ cash: 25, bond: 25, equity: 25, gold: 25 }); return; }
-                const n = {};
-                let acc = 0;
-                ASSETS.forEach((a, i) => {
-                    if (i < 3) { n[a.key] = Math.round((sliders[a.key] / sum) * 100 / 5) * 5; acc += n[a.key]; }
-                });
-                n.gold = 100 - acc;
-                setSliders(n);
-            };
+          return (
+            <div style={{
+              minHeight: "100vh", background: C.bg, color: C.ink,
+              fontFamily: "'Segoe UI', system-ui, -apple-system, sans-serif", padding: "12px 12px 28px",
+            }}>
+              <div style={{ maxWidth: 480, margin: "0 auto" }}>
 
-            const lockAndReveal = () => {
-                if (!ready) return;
-                const w = { cash: sliders.cash / 100, bond: sliders.bond / 100, equity: sliders.equity / 100, gold: sliders.gold / 100 };
-                const dw = dcaFollow ? w : { cash: dcaSliders.cash / 100, bond: dcaSliders.bond / 100, equity: dcaSliders.equity / 100, gold: dcaSliders.gold / 100 };
-                const total = wealth + DCA;
-                const newHold = {};
-                ASSETS.forEach((a) => { newHold[a.key] = wealth * w[a.key] + DCA * dw[a.key]; });
-                const { card, r } = deck[turn];
-                ASSETS.forEach((a) => { newHold[a.key] *= 1 + r[a.key]; });
-                const endW = Object.values(newHold).reduce((s, v) => s + v, 0);
-                setHoldings(newHold);
-                setTargets([...targets, w]);
-                setHistory([...history, { turn: turn + 1, card, r, startW: total, endW, ret: endW / total - 1 }]);
-                setPhase("result");
-            };
-
-            const nextTurn = () => {
-                if (turn + 1 >= TURNS) { setPhase("summary"); return; }
-                const w = wealth;
-                const drift = {};
-                let acc = 0;
-                ASSETS.forEach((a, i) => {
-                    if (i < 3) { drift[a.key] = Math.round((holdings[a.key] / w) * 100 / 5) * 5; acc += drift[a.key]; }
-                });
-                drift.gold = Math.max(0, 100 - acc);
-                setSliders(drift);
-                setDcaFollow(true);
-                setDcaSliders(drift);
-                setTurn(turn + 1);
-                setPhase("allocate");
-            };
-
-            const playAgain = () => {
-                setDeck(generateDeck());
-                setTurn(0); setPhase("start");
-                setHoldings({ cash: START, bond: 0, equity: 0, gold: 0 });
-                setSliders({ cash: 25, bond: 25, equity: 25, gold: 25 });
-                setDcaFollow(true);
-                setDcaSliders({ cash: 25, bond: 25, equity: 25, gold: 25 });
-                setHistory([]); setTargets([]);
-            };
-
-            const summary = useMemo(() => {
-                if (phase !== "summary" || history.length < TURNS) return null;
-                const finalW = history[TURNS - 1].endW;
-                const invested = START + DCA * TURNS;
-                const twr = history.reduce((p, h) => p * (1 + h.ret), 1);
-                const cagr = Math.pow(twr, 1 / TURNS) - 1;
-                const worst = history.reduce((m, h) => (h.ret < m.ret ? h : m), history[0]);
-                const best = history.reduce((m, h) => (h.ret > m.ret ? h : m), history[0]);
-                const avgW = { cash: 0, bond: 0, equity: 0, gold: 0 };
-                targets.forEach((t) => ASSETS.forEach((a) => { avgW[a.key] += t[a.key] / targets.length; }));
-                const type = investorType(avgW, worst.ret);
-                const badges = [];
-                if (finalW >= TARGET_W) badges.push({ emoji: "👑", name: "ผู้พิชิตเป้า 4%", desc: "พอร์ตโตทะลุเป้าหมาย เกษียณสบายใจ" });
-                if (finalW >= INFL_W) badges.push({ emoji: "🔥", name: "ผู้เอาชนะเงินเฟ้อ", desc: "รักษามูลค่าเงินไว้ได้สำเร็จ" });
-                if (worst.ret >= -0.10) badges.push({ emoji: "🛡️", name: "กลยุทธ์นิ่งสงบ", desc: "พอร์ตไม่เคยร่วงเกิน 10% ในปีเดียว" });
-                const panicked = history.some((h, i) =>
-                    (h.card.id === "crash" || h.card.id === "bear") && i + 1 < targets.length &&
-                    targets[i + 1].equity < targets[i].equity - 0.001);
-                if (!panicked) badges.push({ emoji: "💎", name: "มือเพชร (Diamond Hands)", desc: "ไม่ตื่นตูมเทขายหุ้นหลังเจอวิกฤต" });
-                const level = finalW >= TARGET_W ? "win" : finalW >= INFL_W ? "mid" : "lose";
-                const eq100 = runBenchmark(deck, { cash: 0, bond: 0, equity: 1, gold: 0 });
-                const cash100 = runBenchmark(deck, { cash: 1, bond: 0, equity: 0, gold: 0 });
-                const initMix = runBenchmark(deck, targets[0]);
-                const chart = history.map((h, i) => ({
-                    year: i + 1, "พอร์ตของคุณ": h.endW, "หุ้น 100%": eq100[i], "เงินสด 100%": cash100[i], "สัดส่วนปีแรก": initMix[i],
-                }));
-                return { finalW, invested, cagr, worst, best, type, badges, level, chart };
-            }, [phase, history, targets, deck]);
-
-            const wealthChart = history.map((h) => ({ year: h.turn, wealth: h.endW, pace: paceAt(h.turn) }));
-            const cur = history[history.length - 1];
-
-            return (
-                <div style={{ padding: "16px 16px 40px" }}>
-                    <div style={{ maxWidth: 540, margin: "0 auto" }}>
-
-                        {/* ---------- Header ---------- */}
-                        <div style={{
-                            display: "flex", alignItems: "center", gap: 16, marginBottom: 16,
-                            background: `linear-gradient(135deg, #ffffff 0%, ${C.primarySoft} 100%)`, 
-                            border: `1px solid ${C.border}`, borderRadius: 20, padding: "16px 20px",
-                            boxShadow: "0 4px 20px rgba(0,0,0,0.03)"
-                        }}>
-                            <div style={{
-                                background: `linear-gradient(135deg, ${C.primary}, ${C.primaryHover})`,
-                                width: 48, height: 48, borderRadius: 14, display: "flex",
-                                alignItems: "center", justifyContent: "center", fontSize: 24, boxShadow: "0 4px 10px rgba(99, 102, 241, 0.3)"
-                            }}>💸</div>
-                            <div>
-                                <div style={{ fontSize: 20, fontWeight: 800, color: C.text, display: "flex", alignItems: "center" }}>
-                                    เกมจำลองการลงทุน
-                                    <span style={{ 
-                                        fontSize: 11, fontWeight: 700, color: C.primary, background: "#fff", 
-                                        borderRadius: 20, padding: "2px 8px", marginLeft: 12, border: `1px solid ${C.primary}33`
-                                    }}>v.2</span>
-                                </div>
-                                <div style={{ fontSize: 13, color: C.textMuted, marginTop: 4 }}>บริหารเงิน 10 ปีให้อยู่รอดและเติบโต</div>
-                            </div>
-                        </div>
-
-                        {phase !== "summary" && phase !== "start" && <TurnDots turn={turn + (phase === "result" ? 1 : 0)} />}
-
-                        {/* ---------- หน้าแรก (START) ---------- */}
-                        {phase === "start" && (
-                            <div className="fade-in-up">
-                                <div style={{ background: C.card, borderRadius: 20, padding: "28px 24px", marginBottom: 16, textAlign: "center", boxShadow: "0 8px 30px rgba(0,0,0,0.04)" }}>
-                                    <div style={{ fontSize: 50, marginBottom: 12, filter: "drop-shadow(0 4px 8px rgba(0,0,0,0.1))" }}>🎯</div>
-                                    <div style={{ fontSize: 22, fontWeight: 800, color: C.text, marginBottom: 16 }}>ภารกิจ 10 ปีของคุณ</div>
-                                    <div style={{ fontSize: 15, color: C.textMuted, lineHeight: 1.8, textAlign: "left", display: "flex", flexDirection: "column", gap: 12 }}>
-                                        <div style={{ display: "flex", gap: 12 }}><span style={{ fontSize: 18 }}>💰</span> <span>เริ่มต้นด้วยทุน <b>฿1,000,000</b> และลงทุนเพิ่ม (DCA) <b>฿100,000 ทุกปี</b></span></div>
-                                        <div style={{ display: "flex", gap: 12 }}><span style={{ fontSize: 18 }}>📊</span> <span>ในแต่ละปี คุณต้องจัดสัดส่วนพอร์ต <b>ก่อนที่</b> ตลาดจะเฉลยผลลัพธ์</span></div>
-                                        <div style={{ display: "flex", gap: 12 }}><span style={{ fontSize: 18 }}>🎢</span> <span>เตรียมรับมือความผันผวน และวิกฤตเศรษฐกิจ 💥 อย่างน้อย 1 ครั้ง</span></div>
-                                    </div>
-                                </div>
-                                
-                                <div style={{ display: "flex", gap: 16, marginBottom: 20 }}>
-                                    <div style={{ flex: 1, background: C.goldSoft, borderRadius: 16, padding: "16px", color: "#B45309" }}>
-                                        <div style={{ fontSize: 14, fontWeight: 800, marginBottom: 6 }}>เป้าหมายขั้นต่ำ 🛡️</div>
-                                        <div style={{ fontSize: 13, lineHeight: 1.6 }}>ชนะเงินเฟ้อ (2.5%/ปี) จบเกมให้ได้เกิน <b>{fmtShort(INFL_W)}</b></div>
-                                    </div>
-                                    <div style={{ flex: 1, background: C.greenSoft, borderRadius: 16, padding: "16px", color: "#047857" }}>
-                                        <div style={{ fontSize: 14, fontWeight: 800, marginBottom: 6 }}>เป้าหมายหลัก 🏆</div>
-                                        <div style={{ fontSize: 13, lineHeight: 1.6 }}>เติบโต 4%/ปี ขึ้นไป จบเกมให้ได้เกิน <b>{fmtShort(TARGET_W)}</b></div>
-                                    </div>
-                                </div>
-
-                                <button onClick={() => setPhase("allocate")} className="btn-primary">
-                                    ▶️ เริ่มสร้างความมั่งคั่ง
-                                </button>
-                            </div>
-                        )}
-
-                        {/* ---------- หน้าจัดสรรเงินลงทุน (ALLOCATE) ---------- */}
-                        {phase === "allocate" && (
-                            <div className="fade-in-up">
-                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 16, padding: "0 4px" }}>
-                                    <div>
-                                            <div style={{ fontSize: 24, fontWeight: 800, color: C.text }}>ปีที่ {turn + 1} <span style={{ color: C.textMuted, fontSize: 16 }}>/ {TURNS}</span></div>
-                                            <div style={{ fontSize: 14, color: C.textMuted, marginTop: 4 }}>
-                                                ปรับสัดส่วนพอร์ตสำหรับเงิน <b style={{ color: C.text }}>{fmt(wealth)}</b>
-                                            </div>
-                                    </div>
-                                    <div style={{ background: C.greenSoft, color: C.green, padding: "6px 12px", borderRadius: 20, fontSize: 13, fontWeight: 700 }}>
-                                        + DCA 100K
-                                    </div>
-                                </div>
-
-                                <div style={{
-                                    background: turn === 0 ? C.primarySoft : C.goldSoft, color: turn === 0 ? C.primaryHover : "#B45309", 
-                                    borderRadius: 16, padding: "12px 16px", marginBottom: 16, fontSize: 13, fontWeight: 600, display: "flex", gap: 12
-                                }}>
-                                    <span style={{ fontSize: 18 }}>{turn === 0 ? '💡' : '⚖️'}</span>
-                                    <span>{turn === 0
-                                        ? "เลือกสัดส่วนที่คุณมั่นใจ คุณไม่สามารถเดาอนาคตได้ ทำได้เพียงกระจายความเสี่ยง"
-                                        : "ผลจากปีที่แล้วทำให้สัดส่วนเปลี่ยนไป ปรับสมดุล (Rebalance) ใหม่ก่อนไปต่อ"}</span>
-                                </div>
-
-                                <div style={{ background: C.card, borderRadius: 24, padding: "24px", marginBottom: 16, boxShadow: "0 8px 30px rgba(0,0,0,0.03)" }}>
-                                    {ASSETS.map((a) => (
-                                        <AllocSlider key={a.key} asset={a} value={sliders[a.key]}
-                                            onChange={(v) => setSliders({ ...sliders, [a.key]: v })} />
-                                    ))}
-                                    
-                                    <MixBar weights={sliders} />
-                                    
-                                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 20, paddingTop: 16, borderTop: `1px solid ${C.border}` }}>
-                                        <span style={{ fontSize: 16, fontWeight: 800, color: sum === 100 ? C.green : C.red }}>
-                                            รวม: {sum}% {sum !== 100 && <span style={{ fontSize: 13, fontWeight: 500 }}>(ต้องเป็น 100%)</span>}
-                                        </span>
-                                        {sum !== 100 && (
-                                            <button onClick={normalize} style={{
-                                                fontSize: 13, fontWeight: 700, color: C.primary, background: C.primarySoft,
-                                                border: "none", borderRadius: 20, padding: "8px 16px", cursor: "pointer",
-                                            }}>✨ ปรับให้อัตโนมัติ</button>
-                                        )}
-                                    </div>
-                                </div>
-
-                                <div style={{ background: C.card, borderRadius: 20, padding: "20px", marginBottom: 24, boxShadow: "0 4px 15px rgba(0,0,0,0.02)" }}>
-                                    <label style={{ display: "flex", alignItems: "center", gap: 12, cursor: "pointer" }}>
-                                        <div style={{ position: 'relative', width: 44, height: 24 }}>
-                                            <input type="checkbox" checked={dcaFollow} onChange={(e) => {
-                                                setDcaFollow(e.target.checked);
-                                                if (!e.target.checked) setDcaSliders({ ...sliders });
-                                            }} style={{ opacity: 0, width: 0, height: 0 }} />
-                                            <span className={`toggle-slider ${dcaFollow ? 'on' : 'off'}`}></span>
-                                        </div>
-                                        <div style={{ flex: 1 }}>
-                                            <div style={{ fontSize: 14, fontWeight: 700 }}>เงิน DCA ลงทุนตามสัดส่วนด้านบน</div>
-                                            <div style={{ fontSize: 12, color: C.textMuted, marginTop: 2 }}>ปิดเพื่อจัดสัดส่วนเงิน 100,000 แยกต่างหาก</div>
-                                        </div>
-                                    </label>
-
-                                    {!dcaFollow && (
-                                        <div style={{ marginTop: 24, borderTop: `1px dashed ${C.border}`, paddingTop: 24 }} className="fade-in-up">
-                                            {ASSETS.map((a) => (
-                                                <AllocSlider key={a.key} asset={a} value={dcaSliders[a.key]}
-                                                    onChange={(v) => setDcaSliders({ ...dcaSliders, [a.key]: v })} />
-                                            ))}
-                                            <MixBar weights={dcaSliders} />
-                                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 20 }}>
-                                                <span style={{ fontSize: 15, fontWeight: 800, color: dcaSum === 100 ? C.green : C.red }}>
-                                                    รวม DCA: {dcaSum}%
-                                                </span>
-                                                {dcaSum !== 100 && (
-                                                    <button onClick={normalizeDca} style={{
-                                                        fontSize: 13, fontWeight: 700, color: C.primary, background: C.primarySoft,
-                                                        border: "none", borderRadius: 20, padding: "8px 16px", cursor: "pointer",
-                                                    }}>✨ ปรับให้อัตโนมัติ</button>
-                                                )}
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-
-                                <button onClick={lockAndReveal} disabled={!ready} className={`btn-primary ${!ready ? 'disabled' : ''}`}>
-                                    🔒 ยืนยันพอร์ต & ดูผลลัพธ์
-                                </button>
-                            </div>
-                        )}
-
-                        {/* ---------- หน้าสรุปรายปี (RESULT) ---------- */}
-                        {phase === "result" && cur && (
-                            <div className="fade-in-up">
-                                <div style={{
-                                    background: C.card, border: `2px solid ${cur.ret >= 0 ? C.green : C.red}`,
-                                    borderRadius: 24, padding: "32px 20px", marginBottom: 16, textAlign: "center",
-                                    boxShadow: `0 12px 30px ${cur.ret >= 0 ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)'}`
-                                }}>
-                                    <div style={{ fontSize: 56, marginBottom: 8, filter: "drop-shadow(0 4px 6px rgba(0,0,0,0.1))" }}>{cur.card.emoji}</div>
-                                    <div style={{ fontSize: 24, fontWeight: 800, color: C.text }}>{cur.card.name}</div>
-                                    <div style={{ fontSize: 14, color: C.textMuted, marginTop: 8, maxWidth: 300, margin: "8px auto 0" }}>{cur.card.desc}</div>
-                                </div>
-
-                                <div style={{ background: C.card, borderRadius: 20, padding: "20px", marginBottom: 16, boxShadow: "0 4px 20px rgba(0,0,0,0.03)" }}>
-                                    <div style={{ fontSize: 14, fontWeight: 700, color: C.textMuted, marginBottom: 12 }}>ผลลัพธ์สินทรัพย์แต่ละประเภท:</div>
-                                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                                        {ASSETS.map((a) => (
-                                            <div key={a.key} style={{
-                                                background: C.bg, border: `1px solid ${C.border}`, borderRadius: 12, padding: "12px",
-                                                display: "flex", justifyContent: "space-between", alignItems: "center"
-                                            }}>
-                                                <div style={{ fontSize: 13, fontWeight: 700, color: a.color }}>{a.name.split(' ')[1]}</div>
-                                                <div style={{ fontSize: 15, fontWeight: 800, color: cur.r[a.key] >= 0 ? C.green : C.red }}>
-                                                    {pctf(cur.r[a.key])}
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                    
-                                    <div style={{
-                                        marginTop: 20, padding: "20px", borderRadius: 16,
-                                        background: cur.ret >= 0 ? `linear-gradient(135deg, ${C.greenSoft}, #A7F3D0)` : `linear-gradient(135deg, ${C.redSoft}, #FECACA)`,
-                                        textAlign: "center", border: `1px solid ${cur.ret >= 0 ? '#6EE7B7' : '#FCA5A5'}`
-                                    }}>
-                                        <div style={{ fontSize: 14, color: cur.ret >= 0 ? '#065F46' : '#991B1B', fontWeight: 700, marginBottom: 4 }}>ผลตอบแทนพอร์ตของคุณปีนี้</div>
-                                        <div style={{ fontSize: 32, fontWeight: 800, color: cur.ret >= 0 ? C.green : C.red }}>{pctf(cur.ret)}</div>
-                                        
-                                        <div style={{ background: "rgba(255,255,255,0.6)", borderRadius: 12, padding: "10px", marginTop: 12 }}>
-                                            <div style={{ fontSize: 13, color: C.textMuted }}>มูลค่าพอร์ต: {fmt(cur.startW)} → <b style={{ color: C.text, fontSize: 15 }}>{fmt(cur.endW)}</b></div>
-                                            <div style={{ fontSize: 12, fontWeight: 700, marginTop: 4, color: cur.endW >= paceAt(cur.turn) ? C.green : C.red }}>
-                                                {cur.endW >= paceAt(cur.turn) ? "▲ นำหน้าเป้า 4%" : "▼ ตามหลังเป้า 4%"} ({fmtShort(paceAt(cur.turn))})
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {wealthChart.length > 1 && (
-                                    <div style={{ background: C.card, borderRadius: 20, padding: "16px 16px 8px 0", marginBottom: 24, boxShadow: "0 4px 20px rgba(0,0,0,0.03)" }}>
-                                        <div style={{ fontSize: 14, fontWeight: 700, paddingLeft: 24, marginBottom: 8 }}>
-                                            เส้นทางความมั่งคั่ง <span style={{ fontWeight: 400, color: C.textMuted, fontSize: 12 }}>· เส้นประสีทอง = เป้า 4%</span>
-                                        </div>
-                                        <ResponsiveContainer width="100%" height={140}>
-                                            <LineChart data={wealthChart} margin={{ top: 6, right: 16, left: 4, bottom: 0 }}>
-                                                <CartesianGrid stroke={C.border} strokeDasharray="3 3" vertical={false} />
-                                                <XAxis dataKey="year" tick={{ fontSize: 11, fill: C.textMuted }} tickLine={false} axisLine={{ stroke: C.border }} />
-                                                <YAxis tickFormatter={fmtShort} tick={{ fontSize: 11, fill: C.textMuted }} tickLine={false} axisLine={false} width={56} />
-                                                <Tooltip formatter={(v, n) => [fmt(v), n === "pace" ? "เป้าหมาย 4%" : "เงินของคุณ"]} labelFormatter={(l) => `ปีที่ ${l}`}
-                                                    contentStyle={{ borderRadius: 12, border: "none", boxShadow: "0 4px 20px rgba(0,0,0,0.1)", fontSize: 13, fontWeight: 600 }} />
-                                                <Line type="monotone" dataKey="wealth" stroke={C.primary} strokeWidth={3} dot={{ r: 4, strokeWidth: 2, fill: "#fff" }} activeDot={{ r: 6 }} />
-                                                <Line type="monotone" dataKey="pace" stroke={C.gold} strokeWidth={2} dot={false} strokeDasharray="6 4" />
-                                            </LineChart>
-                                        </ResponsiveContainer>
-                                    </div>
-                                )}
-
-                                <button onClick={nextTurn} className="btn-primary" style={{ background: C.text, color: "#fff", boxShadow: "0 8px 20px rgba(30, 41, 59, 0.3)" }}>
-                                    {turn + 1 >= TURNS ? "🏁 ดูสรุปผลงาน 10 ปี" : `ไปต่อปีที่ ${turn + 2} →`}
-                                </button>
-                            </div>
-                        )}
-
-                        {/* ---------- หน้าสรุปผล (SUMMARY) ---------- */}
-                        {phase === "summary" && summary && (
-                            <div className="fade-in-up">
-                                <div style={{
-                                    background: C.card, borderRadius: 24, padding: "32px 20px", marginBottom: 16, textAlign: "center",
-                                    boxShadow: "0 12px 40px rgba(0,0,0,0.06)", position: "relative", overflow: "hidden"
-                                }}>
-                                    <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 6, background: `linear-gradient(90deg, ${C.primary}, ${C.gold})` }} />
-                                    
-                                    <div style={{ fontSize: 56, marginBottom: 12, filter: "drop-shadow(0 4px 6px rgba(0,0,0,0.1))" }}>{summary.type.emoji}</div>
-                                    <div style={{ fontSize: 24, fontWeight: 800, color: C.primary, marginBottom: 4 }}>{summary.type.name}</div>
-                                    <div style={{ fontSize: 14, color: C.textMuted }}>{summary.type.desc}</div>
-                                    
-                                    <div style={{ marginTop: 24, background: C.bg, borderRadius: 16, padding: "20px" }}>
-                                        <div style={{ fontSize: 13, color: C.textMuted, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1 }}>ความมั่งคั่งสุทธิ</div>
-                                        <div style={{ fontSize: 36, fontWeight: 800, color: C.text, margin: "4px 0 8px", fontVariantNumeric: "tabular-nums" }}>
-                                            {fmt(summary.finalW)}
-                                        </div>
-                                        <div style={{ fontSize: 13, color: C.textMuted }}>จากเงินต้นที่ลงทุนไป {fmt(summary.invested)}</div>
-                                    </div>
-                                    
-                                    <div style={{
-                                        marginTop: 16, borderRadius: 12, padding: "12px 16px", fontSize: 13.5, fontWeight: 700, lineHeight: 1.6,
-                                        background: summary.level === "win" ? C.greenSoft : summary.level === "mid" ? C.goldSoft : C.redSoft,
-                                        color: summary.level === "win" ? "#065F46" : summary.level === "mid" ? "#92400E" : "#991B1B",
-                                        border: `1px solid ${summary.level === "win" ? '#34D399' : summary.level === "mid" ? '#FCD34D' : '#FCA5A5'}`
-                                    }}>
-                                        {summary.level === "win" && `🎉 ยอดเยี่ยม! พอร์ตของคุณโตทะลุเป้าหมาย 4%/ปี (${fmtShort(TARGET_W)}) คุณพร้อมสำหรับการเกษียณแล้ว!`}
-                                        {summary.level === "mid" && `👏 คุณรอดพ้นจากเงินเฟ้อ (${fmtShort(INFL_W)}) แต่ยังไปไม่ถึงเป้า 4% (${fmtShort(TARGET_W)}) ถือว่าทำได้ดีในทศวรรษที่ผันผวน!`}
-                                        {summary.level === "lose" && `📉 น่าเสียดาย! คุณแพ้เงินเฟ้อ (${fmtShort(INFL_W)}) มูลค่าเงินของคุณลดลงเมื่อเทียบกับค่าครองชีพ`}
-                                    </div>
-                                </div>
-
-                                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 16 }}>
-                                    <div className="stat-card">
-                                        <div className="label">ผลกำไรสุทธิ</div>
-                                        <div className="value" style={{ color: summary.finalW >= summary.invested ? C.green : C.red }}>
-                                            {summary.finalW >= summary.invested ? "+" : ""}{fmt(summary.finalW - summary.invested)}
-                                        </div>
-                                    </div>
-                                    <div className="stat-card">
-                                        <div className="label">ผลตอบแทนเฉลี่ย</div>
-                                        <div className="value" style={{ color: C.primary }}>{pctf(summary.cagr)}<span style={{ fontSize: 13 }}>/ปี</span></div>
-                                    </div>
-                                    <div className="stat-card">
-                                        <div className="label">ปีที่ดีที่สุด (ปีที่ {summary.best.turn})</div>
-                                        <div className="value" style={{ color: C.green }}>{summary.best.card.emoji} {pctf(summary.best.ret)}</div>
-                                    </div>
-                                    <div className="stat-card">
-                                        <div className="label">ปีที่แย่ที่สุด (ปีที่ {summary.worst.turn})</div>
-                                        <div className="value" style={{ color: C.red }}>{summary.worst.card.emoji} {pctf(summary.worst.ret)}</div>
-                                    </div>
-                                </div>
-
-                                <div style={{ background: C.card, borderRadius: 20, padding: "20px", marginBottom: 16, boxShadow: "0 4px 15px rgba(0,0,0,0.02)" }}>
-                                    <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
-                                        🎖️ ถ้วยรางวัลแห่งความสำเร็จ
-                                    </div>
-                                    {summary.badges.length === 0 ? (
-                                        <div style={{ fontSize: 14, color: C.textMuted, textAlign: "center", padding: "12px 0" }}>ยังไม่ได้รับเหรียญตราในรอบนี้ ลองใหม่รอบหน้านะ!</div>
-                                    ) : (
-                                        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                                            {summary.badges.map((b) => (
-                                                <div key={b.name} style={{ display: "flex", gap: 16, alignItems: "center", background: C.bg, borderRadius: 12, padding: "12px 16px" }}>
-                                                    <div style={{ fontSize: 24, background: "#fff", width: 40, height: 40, borderRadius: 20, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 2px 8px rgba(0,0,0,0.05)" }}>
-                                                        {b.emoji}
-                                                    </div>
-                                                    <div>
-                                                        <div style={{ fontSize: 14, fontWeight: 800, color: C.text }}>{b.name}</div>
-                                                        <div style={{ fontSize: 12, color: C.textMuted, marginTop: 2 }}>{b.desc}</div>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-
-                                <div style={{ background: C.card, borderRadius: 20, padding: "16px 16px 4px 0", marginBottom: 16, boxShadow: "0 4px 15px rgba(0,0,0,0.02)" }}>
-                                    <div style={{ fontSize: 14, fontWeight: 700, paddingLeft: 24, marginBottom: 8 }}>
-                                        เปรียบเทียบกับนักลงทุนสายอื่น <span style={{ fontWeight: 400, color: C.textMuted, fontSize: 12 }}>· 10 ปีที่ผ่านมา</span>
-                                    </div>
-                                    <ResponsiveContainer width="100%" height={220}>
-                                        <LineChart data={summary.chart} margin={{ top: 10, right: 16, left: 4, bottom: 0 }}>
-                                            <CartesianGrid stroke={C.border} strokeDasharray="3 3" vertical={false} />
-                                            <XAxis dataKey="year" tick={{ fontSize: 11, fill: C.textMuted }} tickLine={false} axisLine={{ stroke: C.border }} />
-                                            <YAxis tickFormatter={fmtShort} tick={{ fontSize: 11, fill: C.textMuted }} tickLine={false} axisLine={false} width={56} />
-                                            <Tooltip formatter={(v, n) => [fmt(v), n]} labelFormatter={(l) => `ปีที่ ${l}`}
-                                                contentStyle={{ borderRadius: 12, border: "none", boxShadow: "0 4px 20px rgba(0,0,0,0.1)", fontSize: 13, fontWeight: 600 }} />
-                                            <Legend wrapperStyle={{ fontSize: 12, paddingTop: 16 }} />
-                                            <Line type="monotone" dataKey="พอร์ตของคุณ" stroke={C.primary} strokeWidth={3} dot={{ r: 3 }} activeDot={{ r: 6 }} />
-                                            <Line type="monotone" dataKey="หุ้น 100%" stroke={C.red} strokeWidth={1.5} dot={false} strokeDasharray="4 4" />
-                                            <Line type="monotone" dataKey="เงินสด 100%" stroke={C.textMuted} strokeWidth={1.5} dot={false} strokeDasharray="4 4" />
-                                            <Line type="monotone" dataKey="สัดส่วนปีแรก" stroke={C.gold} strokeWidth={1.5} dot={false} strokeDasharray="4 4" />
-                                        </LineChart>
-                                    </ResponsiveContainer>
-                                </div>
-
-                                <div style={{ background: C.card, borderRadius: 20, padding: "20px", marginBottom: 24, boxShadow: "0 4px 15px rgba(0,0,0,0.02)" }}>
-                                    <div style={{ fontSize: 14, fontWeight: 800, marginBottom: 12 }}>ไทม์ไลน์ 10 ปีที่คุณเผชิญ</div>
-                                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                                        {history.map((h) => (
-                                            <div key={h.turn} title={`ปีที่ ${h.turn}: ${h.card.name} (${pctf(h.ret)})`} style={{
-                                                fontSize: 22, background: h.ret >= 0 ? C.greenSoft : C.redSoft,
-                                                borderRadius: 12, padding: "8px 12px", border: `1px solid ${h.ret >= 0 ? '#6EE7B7' : '#FCA5A5'}`,
-                                                display: "flex", flexDirection: "column", alignItems: "center", gap: 4, flex: "1 1 40px"
-                                            }}>
-                                                {h.card.emoji}
-                                                <span style={{ fontSize: 10, fontWeight: 800, color: h.ret >= 0 ? '#065F46' : '#991B1B' }}>ปี {h.turn}</span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                <button onClick={playAgain} className="btn-primary" style={{ background: C.text, color: "#fff", boxShadow: "0 8px 20px rgba(30, 41, 59, 0.3)" }}>
-                                    🔄 เริ่มเล่นใหม่ (สุ่มสถานการณ์ใหม่)
-                                </button>
-                            </div>
-                        )}
-
-                        <div style={{ fontSize: 11.5, color: C.textMuted, lineHeight: 1.6, marginTop: 24, textAlign: "justify", padding: "0 12px" }}>
-                            <b>ข้อมูลเกม:</b> เริ่มต้นด้วยทุน ฿1,000,000 + เติมเงิน (DCA) ฿100,000 ทุกปี · ในช่วง 10 ปีคุณจะเจอวิกฤตเศรษฐกิจอย่างน้อย 1 ครั้ง · 
-                            หุ้นสวิงได้ตั้งแต่ −40% ถึง +32% ต่อปี (อิงจาก S&P 500 จริง) · ราคาทองคำมักจะเคลื่อนไหวสวนทางกับหุ้นเสมอ · 
-                            เป้าหมายเพื่อเรียนรู้ความสำคัญของการจัดพอร์ตและการลงทุนต่อเนื่องระยะยาว <br/><br/>
-                            * เกมนี้สร้างขึ้นเพื่อการศึกษาจำลองความผันผวน ไม่ใช่คำแนะนำการลงทุนจริง
-                        </div>
+                {/* Header */}
+                <div style={{
+                  display: "flex", alignItems: "center", gap: 12, marginBottom: 8,
+                  background: C.card, border: `1px solid ${C.line}`, borderLeft: `4px solid ${C.gold}`,
+                  borderRadius: 12, padding: "12px",
+                }}>
+                  <div>
+                    <div style={{ fontSize: 16, fontWeight: 700, color: C.teal }}>
+                      เกมจำลองการลงทุน 10 ปี
+                      <span style={{ fontSize: 10, fontWeight: 700, color: C.gold, background: C.goldSoft, borderRadius: 20, padding: "2px 8px", marginLeft: 8, verticalAlign: "middle" }}>v.1.1</span>
                     </div>
+                    <div style={{ fontSize: 11, color: C.muted, marginTop: 4 }}>เอาชีวิตรอด 10 ปีในตลาดการเงินด้วยทักษะของคุณ</div>
+                  </div>
                 </div>
-            );
+
+                {phase !== "summary" && phase !== "start" && <TurnDots turn={turn + (phase === "result" ? 1 : 0)} />}
+
+                {/* ---------- START PHASE ---------- */}
+                {phase === "start" && (
+                  <div style={{ animation: "fadeIn 0.3s ease-out" }}>
+                    <div style={{ background: C.card, border: `1px solid ${C.line}`, borderRadius: 12, padding: "12px 14px", marginBottom: 8, textAlign: "center" }}>
+                      <div style={{ fontSize: 31 }}>🎮</div>
+                      <div style={{ fontSize: 16, fontWeight: 800, color: C.teal, marginBottom: 8 }}>ภารกิจ 10 ปีของคุณ</div>
+                      <div style={{ fontSize: 12.5, color: C.ink, lineHeight: 1.7, textAlign: "left" }}>
+                        • เริ่มต้นด้วยเงินลงทุน <b>฿1,000,000</b> และลงทุนเพิ่ม (DCA) <b>฿100,000 ทุกปี</b> — ภายในปีที่ 10 คุณจะใช้เงินทุนไปรวม <b>฿2,000,000</b><br />
+                        • ในแต่ละปี ให้กำหนดสัดส่วนการลงทุนของคุณ <b>ก่อนที่</b> จะเปิดเผยสภาพตลาด<br />
+                        • เหตุการณ์แบบสุ่มจะเกิดขึ้น — รวมถึงวิกฤตตลาดพังทลาย 💥 อย่างน้อย 1 ครั้ง
+                      </div>
+                    </div>
+                    <div style={{ background: C.goldSoft, border: `1px solid ${C.gold}44`, borderRadius: 12, padding: "9px 12px", marginBottom: 8 }}>
+                      <div style={{ fontSize: 12.5, fontWeight: 800, color: C.ink, marginBottom: 4 }}>🎯 เป้าหมายของคุณ</div>
+                      <div style={{ fontSize: 12, color: C.ink, lineHeight: 1.7 }}>
+                        เอาชนะเงินเฟ้อ (2.5%/ปี) เป็นอย่างน้อย — ต้องมีเงินจบเกมมากกว่า <b>{fmtShort(INFL_W)}</b><br />
+                        ทำผลตอบแทนให้ถึง <b style={{ color: C.gold }}>4%/ปี</b> — จบเกมด้วยเงินมากกว่า <b style={{ color: C.gold }}>{fmtShort(TARGET_W)}</b> — เพื่อให้พอร์ตเติบโตพอใช้หลังเกษียณ
+                      </div>
+                    </div>
+                    <div style={{ background: C.card, border: `1px solid ${C.line}`, borderRadius: 12, padding: "9px 12px", marginBottom: 8 }}>
+                      <div style={{ fontSize: 12.5, fontWeight: 800, marginBottom: 6 }}>🏅 สะสมเหรียญตรา (สูงสุด 4 เหรียญ)</div>
+                      <div style={{ fontSize: 11.5, color: C.ink, lineHeight: 1.9 }}>
+                        📈 <b>ผู้ชนะเงินเฟ้อ</b> — จบเกมมีเงินสะสมมากกว่า {fmtShort(INFL_W)}<br />
+                        🏆 <b>ผู้พิชิตเป้า 4%</b> — จบเกมมีเงินสะสมมากกว่า {fmtShort(TARGET_W)}<br />
+                        🛡️ <b>กลยุทธ์มั่นคง</b> — ไม่เคยขาดทุนหนักกว่า 10% ในปีเดียว<br />
+                        🧘 <b>ใจสู้ไม่ถอย</b> — ไม่แพนิคเทขายหุ้นทิ้งหลังเจอปีที่ตลาดพังทลาย 💥
+                      </div>
+                    </div>
+
+                    <button onClick={() => setPhase("allocate")} style={{
+                      width: "100%", padding: "11px 0", borderRadius: 12, border: "none",
+                      background: C.teal, color: "#fff", fontSize: 14.5, fontWeight: 700, cursor: "pointer",
+                    }}>▶️ เริ่มเกม</button>
+                  </div>
+                )}
+
+                {/* ---------- ALLOCATE PHASE ---------- */}
+                {phase === "allocate" && (
+                  <div style={{ animation: "fadeIn 0.3s ease-out" }}>
+                    <div style={{ background: C.card, border: `1px solid ${C.line}`, borderRadius: 12, padding: "10px 14px", marginBottom: 8 }}>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: C.teal, marginBottom: 2 }}>
+                        ปีที่ {turn + 1} จาก {TURNS} — จัดสัดส่วนพอร์ตของคุณ
+                      </div>
+                      <div style={{ fontSize: 11.5, color: C.muted }}>
+                        ความมั่งคั่ง: <b style={{ color: C.ink }}>{fmt(wealth)}</b> + <b style={{ color: C.green }}>ลงทุนเพิ่ม ฿100,000</b> จะถูกนำไปลงทุนตามสัดส่วนด้านล่าง
+                      </div>
+                    </div>
+
+                    <div style={{
+                      background: C.goldSoft, border: `1px solid ${C.gold}44`, borderRadius: 10,
+                      padding: "9px 12px", marginBottom: 8, fontSize: 11.5, color: C.ink,
+                    }}>
+                      📌 {turn === 0
+                        ? "เลือกสัดส่วนของคุณก่อนที่ตลาดจะเฉลยผลลัพธ์ — คุณไม่สามารถคาดเดาอนาคตได้ ทำได้เพียงเตรียมตัวให้พร้อม"
+                        : "ตลาดทำให้สัดส่วนของคุณเปลี่ยนไป — ปรับสมดุล (Rebalance) ก่อนยืนยัน หรือปล่อยสัดส่วนไหลไปตามตลาดก็ได้"}
+                    </div>
+
+                    <div style={{ background: C.card, border: `1px solid ${C.line}`, borderRadius: 12, padding: "10px 14px", marginBottom: 8 }}>
+                      {ASSETS.map((a) => (
+                        <AllocSlider key={a.key} asset={a} value={sliders[a.key]}
+                          onChange={(v) => setSliders({ ...sliders, [a.key]: v })} />
+                      ))}
+                      <MixBar weights={sliders} />
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 8 }}>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: sum === 100 ? C.green : C.red }}>
+                          รวม: {sum}% {sum !== 100 && "(ต้องเป็น 100%)"}
+                        </span>
+                        {sum !== 100 && (
+                          <button onClick={normalize} style={{
+                            fontSize: 11.5, fontWeight: 700, color: C.teal, background: C.tealSoft,
+                            border: "none", borderRadius: 14, padding: "5px 12px", cursor: "pointer",
+                          }}>ปรับสมดุลอัตโนมัติ</button>
+                        )}
+                      </div>
+                    </div>
+
+                    <div style={{ background: C.card, border: `1px solid ${C.line}`, borderRadius: 12, padding: "9px 14px", marginBottom: 8 }}>
+                      <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
+                        <input type="checkbox" checked={dcaFollow} onChange={(e) => {
+                          setDcaFollow(e.target.checked);
+                          if (!e.target.checked) setDcaSliders({ ...sliders });
+                        }} style={{ accentColor: C.teal, width: 16, height: 16 }} />
+                        <span style={{ fontSize: 12.5, fontWeight: 600 }}>
+                          เงินลงทุน (DCA) ฿100,000 ให้ลงตามสัดส่วนพอร์ตด้านบน
+                          <span style={{ fontWeight: 400, color: C.muted }}> (นำติ๊กออกเพื่อตั้งค่าแยก)</span>
+                        </span>
+                      </label>
+                      {!dcaFollow && (
+                        <div style={{ marginTop: 12 }}>
+                          {ASSETS.map((a) => (
+                            <AllocSlider key={a.key} asset={a} value={dcaSliders[a.key]}
+                              onChange={(v) => setDcaSliders({ ...dcaSliders, [a.key]: v })} />
+                          ))}
+                          <MixBar weights={dcaSliders} />
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 8 }}>
+                            <span style={{ fontSize: 12, fontWeight: 700, color: dcaSum === 100 ? C.green : C.red }}>
+                              ยอดรวม DCA: {dcaSum}% {dcaSum !== 100 && "(ต้องเป็น 100%)"}
+                            </span>
+                            {dcaSum !== 100 && (
+                              <button onClick={normalizeDca} style={{
+                                fontSize: 11.5, fontWeight: 700, color: C.teal, background: C.tealSoft,
+                                border: "none", borderRadius: 14, padding: "5px 12px", cursor: "pointer",
+                              }}>ปรับสมดุลอัตโนมัติ</button>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <button onClick={lockAndReveal} disabled={!ready} style={{
+                      width: "100%", padding: "11px 0", borderRadius: 12, border: "none",
+                      background: ready ? C.teal : C.line, color: ready ? "#fff" : C.muted,
+                      fontSize: 14.5, fontWeight: 700, cursor: ready ? "pointer" : "default",
+                    }}>🔒 ยืนยันพอร์ต & เปิดผลลัพธ์ปีที่ {turn + 1}</button>
+                  </div>
+                )}
+
+                {/* ---------- RESULT PHASE ---------- */}
+                {phase === "result" && cur && (
+                  <div style={{ animation: "slideUp 0.3s ease-out" }}>
+                    <div style={{
+                      background: C.card, border: `1px solid ${C.line}`, borderTop: `4px solid ${cur.ret >= 0 ? C.green : C.red}`,
+                      borderRadius: 12, padding: "10px 16px", marginBottom: 8, textAlign: "center",
+                    }}>
+                      <div style={{ fontSize: 31 }}>{cur.card.emoji}</div>
+                      <div style={{ fontSize: 17, fontWeight: 800, color: C.ink }}>{cur.card.name}</div>
+                      <div style={{ fontSize: 11.5, color: C.muted, marginTop: 2 }}>{cur.card.desc}</div>
+                    </div>
+
+                    <div style={{ background: C.card, border: `1px solid ${C.line}`, borderRadius: 12, padding: "9px 12px", marginBottom: 8 }}>
+                      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                        {ASSETS.map((a) => (
+                          <div key={a.key} style={{
+                            flex: "1 1 90px", textAlign: "center", background: C.bg,
+                            border: `1px solid ${C.line}`, borderRadius: 8, padding: "8px 4px",
+                          }}>
+                            <div style={{ fontSize: 11, fontWeight: 700, color: a.color }}>{a.name}</div>
+                            <div style={{ fontSize: 14, fontWeight: 800, color: cur.r[a.key] >= 0 ? C.green : C.red }}>
+                              {pctf(cur.r[a.key])}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <div style={{
+                        marginTop: 12, padding: "7px 10px", borderRadius: 8,
+                        background: cur.ret >= 0 ? C.greenSoft : C.redSoft, textAlign: "center",
+                      }}>
+                        <span style={{ fontSize: 12, color: C.muted }}>พอร์ตของคุณ: </span>
+                        <b style={{ fontSize: 15, color: cur.ret >= 0 ? C.green : C.red }}>{pctf(cur.ret)}</b>
+                        <div style={{ fontSize: 11.5, color: C.muted, marginTop: 2 }}>
+                          {fmt(cur.startW)} → <b style={{ color: C.ink }}>{fmt(cur.endW)}</b>
+                        </div>
+                        <div style={{ fontSize: 11.5, fontWeight: 700, marginTop: 5, color: cur.endW >= paceAt(cur.turn) ? C.green : C.red }}>
+                          {cur.endW >= paceAt(cur.turn) ? "▲ นำหน้าเป้า 4%" : "▼ ตามหลังเป้า 4%"} ({fmtShort(paceAt(cur.turn))}) อยู่ {fmtShort(Math.abs(cur.endW - paceAt(cur.turn)))}
+                        </div>
+                      </div>
+                    </div>
+
+                    {wealthChart.length > 1 && (
+                      <div style={{ background: C.card, border: `1px solid ${C.line}`, borderRadius: 12, padding: "8px 8px 2px 0", marginBottom: 8 }}>
+                        <div style={{ fontSize: 11.5, fontWeight: 700, paddingLeft: 16, marginBottom: 2 }}>
+                          ความมั่งคั่งสะสม <span style={{ fontWeight: 500, color: C.muted }}>· เส้นประสีทอง = เป้า 4%</span>
+                        </div>
+                        <ResponsiveContainer width="100%" height={118}>
+                          <LineChart data={wealthChart} margin={{ top: 6, right: 14, left: 4, bottom: 0 }}>
+                            <CartesianGrid stroke={C.line} strokeDasharray="3 3" vertical={false} />
+                            <XAxis dataKey="year" tick={{ fontSize: 10, fill: C.muted }} tickLine={false} axisLine={{ stroke: C.line }} />
+                            <YAxis tickFormatter={fmtShort} tick={{ fontSize: 10, fill: C.muted }} tickLine={false} axisLine={false} width={52} />
+                            <Tooltip formatter={(v, n) => [fmt(v), n === "pace" ? "เป้าหมาย 4%" : "เงินของคุณ"]} labelFormatter={(l) => `ปีที่ ${l}`}
+                              contentStyle={{ borderRadius: 8, border: `1px solid ${C.line}`, fontSize: 11.5 }} />
+                            <Line type="monotone" dataKey="wealth" stroke={C.teal} strokeWidth={2.2} dot={{ r: 3 }} />
+                            <Line type="monotone" dataKey="pace" stroke={C.gold} strokeWidth={1.8} dot={false} strokeDasharray="6 3" />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      </div>
+                    )}
+
+                    <button onClick={nextTurn} style={{
+                      width: "100%", padding: "11px 0", borderRadius: 12, border: "none",
+                      background: C.gold, color: "#fff", fontSize: 14.5, fontWeight: 700, cursor: "pointer",
+                    }}>
+                      {turn + 1 >= TURNS ? "🏁 ดูผลสรุป 10 ปี" : `ไปต่อปีถัดไป →`}
+                    </button>
+                  </div>
+                )}
+
+                {/* ---------- SUMMARY PHASE ---------- */}
+                {phase === "summary" && summary && (
+                  <div style={{ animation: "fadeIn 0.5s ease-out" }}>
+                    <div style={{
+                      background: C.card, border: `1px solid ${C.line}`, borderTop: `4px solid ${C.gold}`,
+                      borderRadius: 12, padding: "12px 14px", marginBottom: 8, textAlign: "center",
+                    }}>
+                      <div style={{ fontSize: 35 }}>{summary.type.emoji}</div>
+                      <div style={{ fontSize: 18, fontWeight: 800, color: C.teal }}>{summary.type.name}</div>
+                      <div style={{ fontSize: 11.5, color: C.muted, marginTop: 2 }}>{summary.type.desc}</div>
+                      <div style={{ marginTop: 12, fontSize: 26, fontWeight: 800, color: C.ink, fontVariantNumeric: "tabular-nums" }}>
+                        {fmt(summary.finalW)}
+                      </div>
+                      <div style={{ fontSize: 11, color: C.muted }}>ความมั่งคั่งสุทธิ · (ลงทุนไปทั้งหมด {fmt(summary.invested)})</div>
+                      <div style={{
+                        marginTop: 10, borderRadius: 8, padding: "8px 10px", fontSize: 12, fontWeight: 700,
+                        background: summary.level === "win" ? C.greenSoft : summary.level === "mid" ? C.goldSoft : C.redSoft,
+                        color: summary.level === "win" ? C.green : summary.level === "mid" ? "#96731E" : C.red,
+                      }}>
+                        {summary.level === "win" && `🎯 สำเร็จ! ความมั่งคั่งของคุณทะลุเป้าหมาย 4%/ปี (${fmtShort(TARGET_W)})`}
+                        {summary.level === "mid" && `📈 คุณเอาชนะเงินเฟ้อได้ (${fmtShort(INFL_W)}) แต่ยังไปไม่ถึงเป้า 4% (${fmtShort(TARGET_W)}) — การลงทุนจริงต้องใช้เวลาหลายทศวรรษ!`}
+                        {summary.level === "lose" && `🔻 คุณแพ้เงินเฟ้อ (${fmtShort(INFL_W)}) — อำนาจการซื้อของเงินคุณลดลง`}
+                      </div>
+                    </div>
+
+                    <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 8 }}>
+                      {[
+                        ["เงินลงทุนสะสม", fmt(summary.invested)],
+                        ["กำไรสุทธิ", fmt(summary.finalW - summary.invested)],
+                        ["ผลตอบแทนเฉลี่ย", pctf(summary.cagr) + "/ปี"],
+                        ["ปีที่ผลงานดีสุด", `ปีที่ ${summary.best.turn} ${summary.best.card.emoji} ${pctf(summary.best.ret)}`],
+                        ["ปีที่ผลงานแย่สุด", `ปีที่ ${summary.worst.turn} ${summary.worst.card.emoji} ${pctf(summary.worst.ret)}`],
+                      ].map(([l, v]) => (
+                        <div key={l} style={{
+                          flex: "1 1 130px", background: C.card, border: `1px solid ${C.line}`,
+                          borderRadius: 10, padding: "7px 10px",
+                        }}>
+                          <div style={{ fontSize: 10, letterSpacing: 0.6, color: C.muted, fontWeight: 600 }}>{l}</div>
+                          <div style={{ fontSize: 14, fontWeight: 700, color: C.teal, marginTop: 2 }}>{v}</div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div style={{ background: C.card, border: `1px solid ${C.line}`, borderRadius: 12, padding: "9px 12px", marginBottom: 8 }}>
+                      <div style={{ fontSize: 11.5, fontWeight: 700, marginBottom: 8 }}>🏅 เหรียญตราที่ได้รับ</div>
+                      {summary.badges.length === 0 ? (
+                        <div style={{ fontSize: 11.5, color: C.muted }}>คุณไม่ได้เหรียญตราเลยในรอบนี้ — ลองปรับพอร์ตแล้วเล่นใหม่นะ!</div>
+                      ) : (
+                        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                          {summary.badges.map((b) => (
+                            <div key={b.name} style={{ display: "flex", gap: 8, alignItems: "center", background: C.bg, borderRadius: 8, padding: "6px 10px" }}>
+                              <span style={{ fontSize: 17 }}>{b.emoji}</span>
+                              <span style={{ fontSize: 12, fontWeight: 700 }}>{b.name}</span>
+                              <span style={{ fontSize: 10.5, color: C.muted }}>· {b.desc}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    <div style={{ background: C.card, border: `1px solid ${C.line}`, borderRadius: 12, padding: "8px 8px 2px 0", marginBottom: 8 }}>
+                      <div style={{ fontSize: 11.5, fontWeight: 700, paddingLeft: 16, marginBottom: 2 }}>
+                        คุณ เทียบกับ เกณฑ์มาตรฐาน <span style={{ fontWeight: 500, color: C.muted }}>· ในช่วง 10 ปีเดียวกันนี้</span>
+                      </div>
+                      <ResponsiveContainer width="100%" height={178}>
+                        <LineChart data={summary.chart} margin={{ top: 6, right: 14, left: 4, bottom: 0 }}>
+                          <CartesianGrid stroke={C.line} strokeDasharray="3 3" vertical={false} />
+                          <XAxis dataKey="year" tick={{ fontSize: 10, fill: C.muted }} tickLine={false} axisLine={{ stroke: C.line }} />
+                          <YAxis tickFormatter={fmtShort} tick={{ fontSize: 10, fill: C.muted }} tickLine={false} axisLine={false} width={52} />
+                          <Tooltip formatter={(v, n) => [fmt(v), n]} labelFormatter={(l) => `ปีที่ ${l}`}
+                            contentStyle={{ borderRadius: 8, border: `1px solid ${C.line}`, fontSize: 11 }} />
+                          <Legend wrapperStyle={{ fontSize: 10.5 }} />
+                          <Line type="monotone" dataKey="พอร์ตของคุณ" stroke={C.teal} strokeWidth={2.6} dot={false} />
+                          <Line type="monotone" dataKey="หุ้น 100%" stroke={C.rust} strokeWidth={1.6} dot={false} strokeDasharray="5 3" />
+                          <Line type="monotone" dataKey="เงินสด 100%" stroke={C.muted} strokeWidth={1.6} dot={false} strokeDasharray="5 3" />
+                          <Line type="monotone" dataKey="ถือตามสัดส่วนปีแรก" stroke={C.gold} strokeWidth={1.6} dot={false} strokeDasharray="5 3" />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+
+                    <div style={{ background: C.card, border: `1px solid ${C.line}`, borderRadius: 12, padding: "10px 14px", marginBottom: 8 }}>
+                      <div style={{ fontSize: 11.5, fontWeight: 700, marginBottom: 6 }}>ไทม์ไลน์ 10 ปีของคุณ</div>
+                      <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+                        {history.map((h) => (
+                          <div key={h.turn} title={`ปีที่ ${h.turn} ${h.card.name} ${pctf(h.ret)}`} style={{
+                            fontSize: 17, background: h.ret >= 0 ? C.greenSoft : C.redSoft,
+                            borderRadius: 8, padding: "4px 7px",
+                          }}>{h.card.emoji}</div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <button onClick={playAgain} style={{
+                      width: "100%", padding: "11px 0", borderRadius: 12, border: "none",
+                      background: C.teal, color: "#fff", fontSize: 14.5, fontWeight: 700, cursor: "pointer",
+                    }}>🔄 เล่นอีกครั้ง (สุ่มเหตุการณ์ใหม่ 10 ปี)</button>
+                  </div>
+                )}
+
+                {/* Footer */}
+                <div style={{ fontSize: 10.5, color: C.muted, lineHeight: 1.55, marginTop: 10 }}>
+                  กติกา: เริ่มต้นด้วย ฿1,000,000 + เพิ่ม ฿100,000 (DCA) ทุกปี · ยืนยันสัดส่วนล่วงหน้าก่อนดูผลลัพธ์ของแต่ละปี · 
+                  มีการล็อกเป้าสัดส่วนให้ตรงตามที่คุณจัดก่อนลงทุนเพิ่มเสมอ · ในหนึ่งทศวรรษจะเจอวิกฤตตลาดอย่างน้อย 1 ครั้ง และสูงสุดไม่เกิน 2 ครั้ง · 
+                  หุ้นสวิงได้ตั้งแต่ −40% ถึง +32% ต่อปี (อิงจากประวัติศาสตร์จริงของ S&P 500) · ภาวะวิกฤตมีโอกาสลากยาวเข้าสู่ 🐻 ตลาดหมี · ทิศทางของทองคำมักสวนทางกับหุ้น · 
+                  เป้าหมายหลัก: ชนะเงินเฟ้อ (2.5%/ปี) และคาดหวังผลตอบแทน 4%/ปี — ซึ่งเพียงพอต่อการวางแผนเกษียณ. เกมนี้ทำขึ้นเพื่อการศึกษา — ไม่ใช่คำแนะนำการลงทุน.
+                </div>
+              </div>
+            </div>
+          );
         }
 
+        // --- จุดสำคัญ! เรียกใช้ Component หลักเพื่อแสดงผล ---
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
     </script>

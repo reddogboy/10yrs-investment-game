@@ -8,16 +8,16 @@
     <!-- 1. โหลด Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- 2. โหลด React & ReactDOM -->
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <!-- 2. โหลด React & ReactDOM (ล็อคเวอร์ชัน 18) -->
+    <script src="https://unpkg.com/react@18.2.0/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js" crossorigin></script>
 
-    <!-- 3. โหลดไลบรารีสำหรับวาดกราฟ (Recharts) -->
-    <script src="https://unpkg.com/prop-types/prop-types.min.js"></script>
-    <script src="https://unpkg.com/recharts/umd/Recharts.js"></script>
+    <!-- 3. โหลดไลบรารีสำหรับวาดกราฟ (ล็อคเวอร์ชัน 2.1.9 ที่เสถียรที่สุดสำหรับ HTML) -->
+    <script src="https://unpkg.com/prop-types@15.8.1/prop-types.min.js"></script>
+    <script src="https://unpkg.com/recharts@2.1.9/umd/Recharts.js"></script>
 
-    <!-- 4. โหลด Babel สำหรับแปลงโค้ด JSX -->
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- 4. โหลด Babel (ล็อคเวอร์ชัน 7) -->
+    <script src="https://unpkg.com/@babel/standalone@7.23.6/babel.min.js"></script>
 
     <style>
         body { 
@@ -34,7 +34,6 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        // --- เปลี่ยนจากการใช้ import มาเป็นการดึงจาก Global Variable ---
         const { useState, useMemo, useEffect } = React;
         const { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer, Legend } = Recharts;
 

@@ -2,182 +2,156 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>เกมจำลองการลงทุน 10 ปี</title>
-    
-    <!-- ฟอนต์ภาษาไทย Prompt -->
-    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    
-    <!-- โหลด React, ReactDOM, Babel และ Recharts สำหรับทำกราฟใน Browser -->
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    
-    <!-- Recharts และ PropTypes (จำเป็นสำหรับ Recharts) -->
-    <script crossorigin src="https://unpkg.com/prop-types/prop-types.min.js"></script>
-    <script crossorigin src="https://unpkg.com/recharts/umd/Recharts.min.js"></script>
+
+    <!-- โหลด Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- โหลด React และ ReactDOM -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+
+    <!-- โหลด Babel สำหรับคอมไพล์ JSX ในหน้าเว็บ -->
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+
+    <!-- โหลด Recharts สำหรับแสดงกราฟ -->
+    <script src="https://unpkg.com/prop-types@15.6.2/prop-types.min.js"></script>
+    <script src="https://unpkg.com/recharts/umd/Recharts.js" crossorigin></script>
 
     <style>
-        /* รีเซ็ตค่าพื้นฐาน */
-        body, html {
-            margin: 0;
-            padding: 0;
+        body { 
+            background-color: #F8FAFC; 
+            color: #1E293B;
             font-family: 'Prompt', 'Noto Sans Thai', 'Segoe UI', sans-serif;
-            background-color: #F8FAFC; /* Slate 50 */
-            color: #1E293B; /* Slate 800 */
+            -webkit-tap-highlight-color: transparent; 
         }
-        * { box-sizing: border-box; }
-
+        
         /* Animations */
-        .fade-in-up {
-          animation: fadeInUp 0.4s ease-out forwards;
-        }
+        .fade-in-up { animation: fadeInUp 0.4s ease-out forwards; }
         @keyframes fadeInUp {
-          from { opacity: 0; transform: translateY(15px); }
-          to { opacity: 1; transform: translateY(0); }
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         /* Buttons */
         .btn-primary {
-          width: 100%;
-          padding: 16px 0;
-          border-radius: 20px;
-          border: none;
-          background: linear-gradient(135deg, #6366F1, #4F46E5);
-          color: white;
-          font-size: 16px;
-          font-weight: 800;
-          cursor: pointer;
-          box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
-          transition: all 0.2s ease;
-          font-family: inherit;
+            width: 100%;
+            padding: 16px 0;
+            border-radius: 20px;
+            border: none;
+            background: linear-gradient(135deg, #6366F1, #4F46E5);
+            color: white;
+            font-size: 16px;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+            transition: all 0.2s ease;
         }
-        .btn-primary:active {
-          transform: scale(0.98);
-        }
+        .btn-primary:active { transform: scale(0.98); }
         .btn-primary.disabled {
-          background: #E2E8F0;
-          color: #64748B;
-          box-shadow: none;
-          cursor: not-allowed;
-          transform: none;
+            background: #E2E8F0;
+            color: #64748B;
+            box-shadow: none;
+            cursor: not-allowed;
+            transform: none;
         }
 
         /* Custom Sliders */
         .custom-slider {
-          -webkit-appearance: none;
-          width: 100%;
-          height: 12px;
-          border-radius: 6px;
-          background: #F8FAFC;
-          outline: none;
-          margin: 10px 0;
+            -webkit-appearance: none;
+            width: 100%;
+            height: 12px;
+            border-radius: 6px;
+            background: #F8FAFC;
+            outline: none;
+            margin: 10px 0;
         }
         .custom-slider::-webkit-slider-thumb {
-          -webkit-appearance: none;
-          appearance: none;
-          width: 28px;
-          height: 28px;
-          border-radius: 50%;
-          background: var(--slider-color, #6366F1);
-          cursor: pointer;
-          box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-          border: 3px solid #fff;
-          transition: transform 0.1s;
+            -webkit-appearance: none;
+            appearance: none;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--slider-color, #6366F1);
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+            border: 3px solid #fff;
+            transition: transform 0.1s;
         }
-        .custom-slider::-webkit-slider-thumb:active {
-          transform: scale(1.15);
-        }
+        .custom-slider::-webkit-slider-thumb:active { transform: scale(1.15); }
         .custom-slider::-moz-range-thumb {
-          width: 28px;
-          height: 28px;
-          border-radius: 50%;
-          background: var(--slider-color, #6366F1);
-          cursor: pointer;
-          box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-          border: 3px solid #fff;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--slider-color, #6366F1);
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+            border: 3px solid #fff;
         }
 
         /* Toggle Switch */
         .toggle-slider {
-          position: absolute;
-          cursor: pointer;
-          top: 0; left: 0; right: 0; bottom: 0;
-          background-color: #E2E8F0;
-          transition: .3s;
-          border-radius: 24px;
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #E2E8F0;
+            transition: .3s;
+            border-radius: 24px;
         }
         .toggle-slider:before {
-          position: absolute;
-          content: "";
-          height: 18px; width: 18px;
-          left: 3px; bottom: 3px;
-          background-color: white;
-          transition: .3s;
-          border-radius: 50%;
-          box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            position: absolute;
+            content: "";
+            height: 18px; width: 18px;
+            left: 3px; bottom: 3px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
         }
-        .toggle-slider.on {
-          background-color: #6366F1;
-        }
-        .toggle-slider.on:before {
-          transform: translateX(20px);
-        }
+        .toggle-slider.on { background-color: #6366F1; }
+        .toggle-slider.on:before { transform: translateX(20px); }
 
         /* Stat Cards */
         .stat-card {
-          background: #FFFFFF;
-          border: 1px solid #E2E8F0;
-          border-radius: 16px;
-          padding: 16px;
-          box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+            background: #FFFFFF;
+            border: 1px solid #E2E8F0;
+            border-radius: 16px;
+            padding: 16px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.02);
         }
         .stat-card .label {
-          font-size: 11px;
-          font-weight: 700;
-          color: #64748B;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-          margin-bottom: 4px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #64748B;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
         }
-        .stat-card .value {
-          font-size: 18px;
-          font-weight: 800;
-        }
+        .stat-card .value { font-size: 18px; font-weight: 800; }
     </style>
 </head>
 <body>
-    <!-- จุดที่แสดงผล React Component -->
     <div id="root"></div>
 
-    <!-- สคริปต์หลัก (Babel เพื่อรองรับ JSX ใน HTML) -->
     <script type="text/babel">
+        // ดึงเครื่องมือมาจากไลบรารีที่โหลดใน head
         const { useState, useMemo } = React;
-        const { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer, Legend } = window.Recharts;
+        const { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer, Legend } = Recharts;
 
         // ---------------- โทนสีใหม่ (Modern Clean Theme) ----------------
         const C = {
-            bg: "#F8FAFC",          
-            card: "#FFFFFF",        
-            text: "#1E293B",        
-            textMuted: "#64748B",   
-            border: "#E2E8F0",      
-            primary: "#6366F1",     
-            primaryHover: "#4F46E5",
-            primarySoft: "#E0E7FF", 
-            green: "#10B981",       
-            greenSoft: "#D1FAE5",
-            red: "#EF4444",         
-            redSoft: "#FEE2E2",
-            gold: "#F59E0B",        
-            goldSoft: "#FEF3C7",
+            bg: "#F8FAFC", card: "#FFFFFF", text: "#1E293B", textMuted: "#64748B",
+            border: "#E2E8F0", primary: "#6366F1", primaryHover: "#4F46E5", primarySoft: "#E0E7FF",
+            green: "#10B981", greenSoft: "#D1FAE5", red: "#EF4444", redSoft: "#FEE2E2",
+            gold: "#F59E0B", goldSoft: "#FEF3C7",
         };
 
         const ASSETS = [
-            { key: "cash", name: "💵 ตลาดเงิน", color: "#64748B", desc: "1.5% นิ่งๆ หลับสบาย" }, 
-            { key: "bond", name: "📄 ตราสารหนี้", color: "#0EA5E9", desc: "2.5% สวิงเบาๆ" }, 
-            { key: "equity", name: "📈 หุ้นโลก", color: "#8B5CF6", desc: "8% โอกาสโตสูง/ร่วงหนัก" }, 
-            { key: "gold", name: "🥇 ทองคำ", color: "#F59E0B", desc: "3% กระจายความเสี่ยง" }, 
+            { key: "cash", name: "💵 ตลาดเงิน", color: "#64748B", desc: "1.5% นิ่งๆ หลับสบาย" },
+            { key: "bond", name: "📄 ตราสารหนี้", color: "#0EA5E9", desc: "2.5% สวิงเบาๆ" },
+            { key: "equity", name: "📈 หุ้นโลก", color: "#8B5CF6", desc: "8% โอกาสโตสูง/ร่วงหนัก" },
+            { key: "gold", name: "🥇 ทองคำ", color: "#F59E0B", desc: "3% กระจายความเสี่ยง" },
         ];
 
         const fmt = (n) => "฿" + Math.round(n).toLocaleString("en-US");
@@ -241,6 +215,7 @@
             });
         }
 
+        // ---------------- ค่าคงที่ของเกม ----------------
         const DCA = 100000, START = 1000000, TURNS = 10;
         const INFL = 0.025, TARGET = 0.04;
         const fvAt = (r) => START * Math.pow(1 + r, TURNS) + DCA * ((Math.pow(1 + r, TURNS) - 1) / r) * (1 + r);
@@ -321,7 +296,7 @@
         }
 
         // ---------------- เมนคอมโพเนนต์ ----------------
-        function InvestmentGame() {
+        function App() {
             const [deck, setDeck] = useState(generateDeck);
             const [turn, setTurn] = useState(0); 
             const [phase, setPhase] = useState("start"); 
@@ -436,7 +411,7 @@
                 <div style={{ padding: "16px 16px 40px" }}>
                     <div style={{ maxWidth: 540, margin: "0 auto" }}>
 
-                        {/* ---------- Header โฉมใหม่ ---------- */}
+                        {/* ---------- Header ---------- */}
                         <div style={{
                             display: "flex", alignItems: "center", gap: 16, marginBottom: 16,
                             background: `linear-gradient(135deg, #ffffff 0%, ${C.primarySoft} 100%)`, 
@@ -454,7 +429,7 @@
                                     <span style={{ 
                                         fontSize: 11, fontWeight: 700, color: C.primary, background: "#fff", 
                                         borderRadius: 20, padding: "2px 8px", marginLeft: 12, border: `1px solid ${C.primary}33`
-                                    }}>v.2 HTML</span>
+                                    }}>v.2</span>
                                 </div>
                                 <div style={{ fontSize: 13, color: C.textMuted, marginTop: 4 }}>บริหารเงิน 10 ปีให้อยู่รอดและเติบโต</div>
                             </div>
@@ -497,10 +472,10 @@
                             <div className="fade-in-up">
                                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 16, padding: "0 4px" }}>
                                     <div>
-                                        <div style={{ fontSize: 24, fontWeight: 800, color: C.text }}>ปีที่ {turn + 1} <span style={{ color: C.textMuted, fontSize: 16 }}>/ {TURNS}</span></div>
-                                        <div style={{ fontSize: 14, color: C.textMuted, marginTop: 4 }}>
-                                            ปรับสัดส่วนพอร์ตสำหรับเงิน <b style={{ color: C.text }}>{fmt(wealth)}</b>
-                                        </div>
+                                            <div style={{ fontSize: 24, fontWeight: 800, color: C.text }}>ปีที่ {turn + 1} <span style={{ color: C.textMuted, fontSize: 16 }}>/ {TURNS}</span></div>
+                                            <div style={{ fontSize: 14, color: C.textMuted, marginTop: 4 }}>
+                                                ปรับสัดส่วนพอร์ตสำหรับเงิน <b style={{ color: C.text }}>{fmt(wealth)}</b>
+                                            </div>
                                     </div>
                                     <div style={{ background: C.greenSoft, color: C.green, padding: "6px 12px", borderRadius: 20, fontSize: 13, fontWeight: 700 }}>
                                         + DCA 100K
@@ -782,9 +757,8 @@
             );
         }
 
-        // Render Component ลงบน <div id="root">
         const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<InvestmentGame />);
+        root.render(<App />);
     </script>
 </body>
 </html>

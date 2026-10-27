@@ -8,15 +8,15 @@
     <!-- 1. โหลด Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- 2. โหลด React & ReactDOM (ล็อคเวอร์ชัน 18) -->
+    <!-- 2. โหลด React & ReactDOM -->
     <script src="https://unpkg.com/react@18.2.0/umd/react.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js" crossorigin></script>
 
-    <!-- 3. โหลดไลบรารีสำหรับวาดกราฟ (ล็อคเวอร์ชัน 2.1.9 ที่เสถียรที่สุดสำหรับ HTML) -->
+    <!-- 3. โหลดไลบรารีสำหรับวาดกราฟ -->
     <script src="https://unpkg.com/prop-types@15.8.1/prop-types.min.js"></script>
     <script src="https://unpkg.com/recharts@2.1.9/umd/Recharts.js"></script>
 
-    <!-- 4. โหลด Babel (ล็อคเวอร์ชัน 7) -->
+    <!-- 4. โหลด Babel -->
     <script src="https://unpkg.com/@babel/standalone@7.23.6/babel.min.js"></script>
 
     <style>
@@ -30,7 +30,6 @@
     </style>
 </head>
 <body>
-    <!-- จุดที่ React จะนำแอปมาแสดงผล -->
     <div id="root"></div>
 
     <script type="text/babel">
@@ -51,6 +50,14 @@
           { key: "bond", name: "กองทุนตราสารหนี้", color: "#3E6B8F", desc: "ผลตอบแทน ~2.5%, ผันผวนต่ำ" },
           { key: "equity", name: "กองทุนหุ้นโลก", color: "#0E5A5F", desc: "ผลตอบแทนเฉลี่ย ~8%, อาจร่วงหนักถึง −40%" },
           { key: "gold", name: "กองทุนทองคำ", color: "#C9A02C", desc: "ผลตอบแทน ~3%, ใช้กระจายความเสี่ยงจากหุ้น" },
+        ];
+
+        // ---------------- Quick Presets ----------------
+        const PRESETS = [
+          { name: "🚀 สายซิ่ง (หุ้น 80%)", vals: { cash: 5, bond: 5, equity: 80, gold: 10 } },
+          { name: "🐢 สายชิล (ตราสารหนี้ 70%)", vals: { cash: 10, bond: 70, equity: 15, gold: 5 } },
+          { name: "⚖️ สายสมดุล (แบ่งเท่ากัน)", vals: { cash: 25, bond: 25, equity: 25, gold: 25 } },
+          { name: "🛡️ สายเกราะ (ทองคำ 50%)", vals: { cash: 10, bond: 10, equity: 30, gold: 50 } },
         ];
 
         // ---------------- ฟังก์ชันช่วยจัดรูปแบบตัวเลข ----------------
@@ -87,7 +94,6 @@
           return pool[pool.length - 1];
         }
 
-        // จำลองการสุ่ม 10 ปี
         function generateDeck() {
           let cards = Array.from({ length: 10 }, () => drawCard());
           let crashIdx = cards.map((c, i) => (c.id === "crash" ? i : -1)).filter((i) => i >= 0);
@@ -167,7 +173,7 @@
           return (
             <div style={{ display: "flex", height: 14, borderRadius: 7, overflow: "hidden", border: `1px solid ${C.line}` }}>
               {ASSETS.map((a) => weights[a.key] > 0 && (
-                <div key={a.key} style={{ width: `${weights[a.key]}%`, background: a.color }} title={`${a.name} ${weights[a.key]}%`} />
+                <div key={a.key} style={{ width: `${weights[a.key]}%`, background: a.color, transition: 'width 0.2s' }} title={`${a.name} ${weights[a.key]}%`} />
               ))}
             </div>
           );
@@ -199,29 +205,44 @@
           const [targets, setTargets] = useState([]);
           
           const wealth = Object.values(holdings).reduce((s, v) => s + v, 0);
-          const sum = ASSETS.reduce((s, a) => s + sliders[a.key], 0);
-          const dcaSum = ASSETS.reduce((s, a) => s + dcaSliders[a.key], 0);
-          const ready = sum === 100 && (dcaFollow || dcaSum === 100);
+          const ready = true; // Auto-balance makes it always ready (sum is always 100)
 
-          const normalizeDca = () => {
-            if (dcaSum === 0) { setDcaSliders({ cash: 25, bond: 25, equity: 25, gold: 25 }); return; }
-            const n = {}; let acc = 0;
-            ASSETS.forEach((a, i) => {
-              if (i < 3) { n[a.key] = Math.round((dcaSliders[a.key] / dcaSum) * 100 / 5) * 5; acc += n[a.key]; }
-            });
-            n.gold = 100 - acc;
-            setDcaSliders(n);
+          // --- AUTO-BALANCING LOGIC ---
+          const handleSliderChange = (isDca, changedKey, newValue) => {
+            let current = isDca ? dcaSliders : sliders;
+            let newSliders = { ...current, [changedKey]: newValue };
+            let diff = Object.values(newSliders).reduce((a,b) => a+b, 0) - 100;
+            
+            let otherKeys = ASSETS.map(a => a.key).filter(k => k !== changedKey);
+            
+            // Adjust other sliders by chunks of 5% to maintain a sum of 100%
+            while (diff > 0) {
+                // Find the maximum value among others to reduce
+                let maxKey = otherKeys.reduce((a, b) => newSliders[a] > newSliders[b] ? a : b);
+                if (newSliders[maxKey] === 0) break;
+                newSliders[maxKey] -= 5;
+                diff -= 5;
+            }
+            while (diff < 0) {
+                // Find the minimum value among others to increase
+                let minKey = otherKeys.reduce((a, b) => newSliders[a] < newSliders[b] ? a : b);
+                if (newSliders[minKey] === 100) break;
+                newSliders[minKey] += 5;
+                diff += 5;
+            }
+            
+            // Failsafe bounds check
+            if (diff !== 0) {
+               newSliders[changedKey] -= diff; 
+            }
+
+            if (isDca) setDcaSliders(newSliders);
+            else setSliders(newSliders);
           };
 
-          const normalize = () => {
-            if (sum === 0) { setSliders({ cash: 25, bond: 25, equity: 25, gold: 25 }); return; }
-            const n = {};
-            let acc = 0;
-            ASSETS.forEach((a, i) => {
-              if (i < 3) { n[a.key] = Math.round((sliders[a.key] / sum) * 100 / 5) * 5; acc += n[a.key]; }
-            });
-            n.gold = 100 - acc;
-            setSliders(n);
+          const handlePreset = (presetVals) => {
+            setSliders(presetVals);
+            if(dcaFollow) setDcaSliders(presetVals);
           };
 
           const lockAndReveal = () => {
@@ -303,6 +324,17 @@
           const wealthChart = history.map((h) => ({ year: h.turn, wealth: h.endW, pace: paceAt(h.turn) }));
           const cur = history[history.length - 1];
 
+          // ---------------- Social Share ----------------
+          const handleShare = () => {
+            if (!summary) return;
+            const text = `เกมจำลองการลงทุน 10 ปี 📈\nฉันได้ฉายา "${summary.type.name} ${summary.type.emoji}"\nเงินลงทุน ${fmtShort(summary.invested)} โตเป็น ${fmtShort(summary.finalW)}\nผลตอบแทนเฉลี่ย ${pctf(summary.cagr)} ต่อปี!\n\nมาทดสอบทักษะการลงทุนของคุณได้ที่นี่เลย!`;
+            navigator.clipboard.writeText(text).then(() => {
+                alert("คัดลอกผลลัพธ์แล้ว! นำไปวางแชร์ให้เพื่อนๆ ในโซเชียลได้เลยครับ 🎉");
+            }).catch(err => {
+                alert("เกิดข้อผิดพลาดในการคัดลอก กรุณาลองใหม่อีกครั้ง");
+            });
+          };
+
           return (
             <div style={{
               minHeight: "100vh", background: C.bg, color: C.ink,
@@ -319,7 +351,7 @@
                   <div>
                     <div style={{ fontSize: 16, fontWeight: 700, color: C.teal }}>
                       เกมจำลองการลงทุน 10 ปี
-                      <span style={{ fontSize: 10, fontWeight: 700, color: C.gold, background: C.goldSoft, borderRadius: 20, padding: "2px 8px", marginLeft: 8, verticalAlign: "middle" }}>v.1.1</span>
+                      <span style={{ fontSize: 10, fontWeight: 700, color: C.gold, background: C.goldSoft, borderRadius: 20, padding: "2px 8px", marginLeft: 8, verticalAlign: "middle" }}>v.1.2</span>
                     </div>
                     <div style={{ fontSize: 11, color: C.muted, marginTop: 4 }}>เอาชีวิตรอด 10 ปีในตลาดการเงินด้วยทักษะของคุณ</div>
                   </div>
@@ -334,7 +366,7 @@
                       <div style={{ fontSize: 31 }}>🎮</div>
                       <div style={{ fontSize: 16, fontWeight: 800, color: C.teal, marginBottom: 8 }}>ภารกิจ 10 ปีของคุณ</div>
                       <div style={{ fontSize: 12.5, color: C.ink, lineHeight: 1.7, textAlign: "left" }}>
-                        • เริ่มต้นด้วยเงินลงทุน <b>฿1,000,000</b> และลงทุนเพิ่ม (DCA) <b>฿100,000 ทุกปี</b> — ภายในปีที่ 10 คุณจะใช้เงินทุนไปรวม <b>฿2,000,000</b><br />
+                        • เริ่มต้นด้วยเงินลงทุน <b>฿1,000,000</b> และลงทุนเพิ่มรายปี <b>฿100,000</b> — ครบ 10 ปี คุณจะใช้เงินทุนไปรวม <b>฿2,000,000</b><br />
                         • ในแต่ละปี ให้กำหนดสัดส่วนการลงทุนของคุณ <b>ก่อนที่</b> จะเปิดเผยสภาพตลาด<br />
                         • เหตุการณ์แบบสุ่มจะเกิดขึ้น — รวมถึงวิกฤตตลาดพังทลาย 💥 อย่างน้อย 1 ครั้ง
                       </div>
@@ -343,7 +375,7 @@
                       <div style={{ fontSize: 12.5, fontWeight: 800, color: C.ink, marginBottom: 4 }}>🎯 เป้าหมายของคุณ</div>
                       <div style={{ fontSize: 12, color: C.ink, lineHeight: 1.7 }}>
                         เอาชนะเงินเฟ้อ (2.5%/ปี) เป็นอย่างน้อย — ต้องมีเงินจบเกมมากกว่า <b>{fmtShort(INFL_W)}</b><br />
-                        ทำผลตอบแทนให้ถึง <b style={{ color: C.gold }}>4%/ปี</b> — จบเกมด้วยเงินมากกว่า <b style={{ color: C.gold }}>{fmtShort(TARGET_W)}</b> — เพื่อให้พอร์ตเติบโตพอใช้หลังเกษียณ
+                        ทำผลตอบแทนให้ถึง <b style={{ color: C.gold }}>4%/ปี</b> — จบเกมด้วยเงินมากกว่า <b style={{ color: C.gold }}>{fmtShort(TARGET_W)}</b> — เพื่อให้พอร์ตเติบโตพอใช้หลังเกษียณ ดีกว่าฝากไว้ในสินทรัพย์เสี่ยงต่ำทั้งหมด
                       </div>
                     </div>
                     <div style={{ background: C.card, border: `1px solid ${C.line}`, borderRadius: 12, padding: "9px 12px", marginBottom: 8 }}>
@@ -371,7 +403,7 @@
                         ปีที่ {turn + 1} จาก {TURNS} — จัดสัดส่วนพอร์ตของคุณ
                       </div>
                       <div style={{ fontSize: 11.5, color: C.muted }}>
-                        ความมั่งคั่ง: <b style={{ color: C.ink }}>{fmt(wealth)}</b> + <b style={{ color: C.green }}>ลงทุนเพิ่ม ฿100,000</b> จะถูกนำไปลงทุนตามสัดส่วนด้านล่าง
+                        ความมั่งคั่ง: <b style={{ color: C.ink }}>{fmt(wealth)}</b> + <b style={{ color: C.green }}>ลงทุนรายปี ฿100,000</b> จะถูกนำไปลงทุนตามสัดส่วนด้านล่าง
                       </div>
                     </div>
 
@@ -385,22 +417,22 @@
                     </div>
 
                     <div style={{ background: C.card, border: `1px solid ${C.line}`, borderRadius: 12, padding: "10px 14px", marginBottom: 8 }}>
+                      {/* Presets Button Row */}
+                      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 16 }}>
+                        <div style={{fontSize: 11, width: '100%', fontWeight: '700', color: C.muted, marginBottom: 2}}>⚡ จัดพอร์ตด่วน (Quick Presets):</div>
+                        {PRESETS.map(p => (
+                            <button key={p.name} onClick={() => handlePreset(p.vals)}
+                                style={{ flex: "1 1 calc(50% - 6px)", fontSize: 11, padding: "7px 6px", borderRadius: 8, background: C.tealSoft, color: C.teal, border: "none", cursor: "pointer", fontWeight: 700 }}>
+                                {p.name}
+                            </button>
+                        ))}
+                      </div>
+
                       {ASSETS.map((a) => (
                         <AllocSlider key={a.key} asset={a} value={sliders[a.key]}
-                          onChange={(v) => setSliders({ ...sliders, [a.key]: v })} />
+                          onChange={(v) => handleSliderChange(false, a.key, v)} />
                       ))}
                       <MixBar weights={sliders} />
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 8 }}>
-                        <span style={{ fontSize: 12, fontWeight: 700, color: sum === 100 ? C.green : C.red }}>
-                          รวม: {sum}% {sum !== 100 && "(ต้องเป็น 100%)"}
-                        </span>
-                        {sum !== 100 && (
-                          <button onClick={normalize} style={{
-                            fontSize: 11.5, fontWeight: 700, color: C.teal, background: C.tealSoft,
-                            border: "none", borderRadius: 14, padding: "5px 12px", cursor: "pointer",
-                          }}>ปรับสมดุลอัตโนมัติ</button>
-                        )}
-                      </div>
                     </div>
 
                     <div style={{ background: C.card, border: `1px solid ${C.line}`, borderRadius: 12, padding: "9px 14px", marginBottom: 8 }}>
@@ -410,28 +442,17 @@
                           if (!e.target.checked) setDcaSliders({ ...sliders });
                         }} style={{ accentColor: C.teal, width: 16, height: 16 }} />
                         <span style={{ fontSize: 12.5, fontWeight: 600 }}>
-                          เงินลงทุน (DCA) ฿100,000 ให้ลงตามสัดส่วนพอร์ตด้านบน
-                          <span style={{ fontWeight: 400, color: C.muted }}> (นำติ๊กออกเพื่อตั้งค่าแยก)</span>
+                          เงินลงทุนรายปี ฿100,000 ให้ลงตามสัดส่วนพอร์ตด้านบน
+                          <div style={{ fontWeight: 400, color: C.muted, fontSize: 11.5, marginTop: 2 }}> (นำติ๊กออกเพื่อตั้งค่าสัดส่วนแยกต่างหาก)</div>
                         </span>
                       </label>
                       {!dcaFollow && (
-                        <div style={{ marginTop: 12 }}>
+                        <div style={{ marginTop: 16, paddingTop: 16, borderTop: `1px solid ${C.line}` }}>
                           {ASSETS.map((a) => (
                             <AllocSlider key={a.key} asset={a} value={dcaSliders[a.key]}
-                              onChange={(v) => setDcaSliders({ ...dcaSliders, [a.key]: v })} />
+                              onChange={(v) => handleSliderChange(true, a.key, v)} />
                           ))}
                           <MixBar weights={dcaSliders} />
-                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 8 }}>
-                            <span style={{ fontSize: 12, fontWeight: 700, color: dcaSum === 100 ? C.green : C.red }}>
-                              ยอดรวม DCA: {dcaSum}% {dcaSum !== 100 && "(ต้องเป็น 100%)"}
-                            </span>
-                            {dcaSum !== 100 && (
-                              <button onClick={normalizeDca} style={{
-                                fontSize: 11.5, fontWeight: 700, color: C.teal, background: C.tealSoft,
-                                border: "none", borderRadius: 14, padding: "5px 12px", cursor: "pointer",
-                              }}>ปรับสมดุลอัตโนมัติ</button>
-                            )}
-                          </div>
                         </div>
                       )}
                     </div>
@@ -593,7 +614,7 @@
                       </ResponsiveContainer>
                     </div>
 
-                    <div style={{ background: C.card, border: `1px solid ${C.line}`, borderRadius: 12, padding: "10px 14px", marginBottom: 8 }}>
+                    <div style={{ background: C.card, border: `1px solid ${C.line}`, borderRadius: 12, padding: "10px 14px", marginBottom: 12 }}>
                       <div style={{ fontSize: 11.5, fontWeight: 700, marginBottom: 6 }}>ไทม์ไลน์ 10 ปีของคุณ</div>
                       <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
                         {history.map((h) => (
@@ -604,6 +625,12 @@
                         ))}
                       </div>
                     </div>
+
+                    <button onClick={handleShare} style={{
+                      width: "100%", padding: "11px 0", borderRadius: 12, border: `2px solid ${C.teal}`,
+                      background: "#fff", color: C.teal, fontSize: 14.5, fontWeight: 700, cursor: "pointer", marginBottom: 8,
+                      boxShadow: "0 2px 6px rgba(14,90,95,0.1)"
+                    }}>📤 แชร์ผลลัพธ์ให้เพื่อน (คัดลอกข้อความ)</button>
 
                     <button onClick={playAgain} style={{
                       width: "100%", padding: "11px 0", borderRadius: 12, border: "none",
